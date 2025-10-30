@@ -1,0 +1,14 @@
+{
+  "home": {
+    "subtitle": "¡Se van a casar!",
+    "welcome": "¡Bienvenidos a nuestra página de bodas!",
+    "description": "¡Siempre que tengan fotos, las haremos desplazarse aquí en una vista de galería! ¡También agregue dirección y hora!",
+    "nav": {
+      "home": "Inicio",
+      "registry": "Registro",
+      "schedule": "Agenda",
+      "rsvp": "Confirmar Asistencia",
+      "gallery": "Galería"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "home": {
+    "subtitle": "Are Getting Married!",
+    "welcome": "Welcome to our wedding website!",
+    "description": "Whenever you guys have photos, we will make them scroll here in a gallery view! Also add address and time!",
+    "nav": {
+      "home": "Home",
+      "registry": "Registry",
+      "schedule": "Schedule",
+      "rsvp": "RSVP",
+      "gallery": "Gallery"
+    }
+  }
+}
