@@ -3,6 +3,7 @@ import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./i18n";
+import { ToastProvider } from "./componets/ToastProvider";
 
 const container = document.getElementById("root");
 
@@ -17,7 +18,9 @@ function Root() {
   return (
     <ChakraProvider value={defaultSystem}>
       <BrowserRouter>
-          <App />
+          <ToastProvider>
+              <App />
+          </ToastProvider>
       </BrowserRouter>
     </ChakraProvider>
   );

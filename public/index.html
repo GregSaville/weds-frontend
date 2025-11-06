@@ -21,8 +21,34 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>The Hidalgos</title>
+    <!-- Adobe Fonts (replace XXXXXXX with your kit ID) -->
+    <link rel="stylesheet" href="https://use.typekit.net/XXXXXXX.css" />
   </head>
   <body>
+    <style>
+      html, body, #root {
+        height: 100%;
+        min-height: 100vh;
+      }
+      /* Very light gold with subtle dotted texture overlay */
+      body {
+        background-color: #fff8e6; /* very light gold */
+        background-image:
+          radial-gradient(rgba(255, 255, 255, 0.35) 1px, rgba(255, 255, 255, 0) 1px),
+          radial-gradient(rgba(0, 0, 0, 0.03) 1px, rgba(0, 0, 0, 0) 1px);
+        background-position: 0 0, 2px 2px;
+        background-size: 8px 8px, 8px 8px;
+        color: #000; /* global text color */
+        font-family: "adobe-jenson-pro", "Adobe Jenson Pro", serif;
+      }
+
+      /* Prefer Adobe Jenson for headings when kit loads */
+      :root{
+        --adobe-jenson-stack: "adobe-jenson-pro", "adobe-jenson-pro-display", "Adobe Jenson Pro", serif;
+      }
+      .chakra-heading{ font-family: var(--adobe-jenson-stack); }
+      .couple-names{ font-family: var(--adobe-jenson-stack); letter-spacing: .08em; text-transform: uppercase; }
+    </style>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <!--

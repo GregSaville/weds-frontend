@@ -1,14 +1,75 @@
 {
   "home": {
     "subtitle": "¡Se van a casar!",
-    "welcome": "¡Bienvenidos a nuestra página de bodas!",
-    "description": "¡Siempre que tengan fotos, las haremos desplazarse aquí en una vista de galería! ¡También agregue dirección y hora!",
+    "welcome": "¡Bienvenidos a nuestra pagina de bodas!",
+    "description": "Cuando tengamos fotos, las mostraremos aqui en una galeria. Tambien agregaremos direccion y hora.",
     "nav": {
       "home": "Inicio",
       "registry": "Registro",
       "schedule": "Agenda",
       "rsvp": "Confirmar Asistencia",
-      "gallery": "Galería"
-    }
+      "gallery": "Galeria",
+      "weddingParty": "Corte Nupcial",
+      "qa": "Preguntas y Respuestas",
+      "travel": "Viaje"
+    },
+    "daysToGo_one": "¡Falta {{count}} día!",
+    "daysToGo_other": "¡Faltan {{count}} días!"
+  },
+  "registry": {
+    "title": "Registro de regalos",
+    "intro": "Estamos registrados en los siguientes lugares:",
+    "empty": "Pronto compartiremos los enlaces del registro."
+  },
+  "rsvp": {
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "specialAccommodationsPlaceholder": "Acomodaciones especiales (opcional)",
+    "notesPrompt": "¿Quieres dejar información adicional para los futuros recién casados?",
+    "notesPlaceholder": "Escribe una nota para la pareja (opcional)",
+    "phonePlaceholder": "Teléfono (opcional)",
+    "emailPlaceholder": "Correo electrónico (opcional)",
+    "addressLabel": "Dirección (opcional)",
+    "address1": "Dirección línea 1",
+    "address2": "Dirección línea 2",
+    "city": "Ciudad",
+    "state": "Estado",
+    "postalCode": "Código postal",
+    "additionalGuests": "Invitados adicionales",
+    "addGuest": "Agregar invitado",
+    "remove": "Eliminar",
+    "additionalGuestsLimit": "Invitados adicionales: {{used}} / {{max}} (restantes {{remaining}})",
+    "maxGuestsReached": "Has alcanzado el máximo de invitados adicionales ({{max}}).",
+    "messagePlaceholder": "Mensaje (opcional)",
+    "submit": "Enviar RSVP",
+    "toastNameRequired": "Por favor ingresa nombre y apellido.",
+    "toastSubmitted": "RSVP enviado. ¡Gracias!",
+    "toastUnexpected": "Respuesta inesperada: {{status}}",
+    "toastFailed": "Error al enviar: {{message}}",
+    "toastMetaFail": "No se pudo cargar la invitación para el token.",
+    "loadingMeta": "Cargando los detalles de tu RSVP..."
+  },
+  "weddingParty": {
+    "title": "Corte Nupcial",
+    "intro": "Conozca a damas, padrinos y personas especiales."
+  },
+  "qa": {
+    "title": "Preguntas y Respuestas",
+    "intro": "Respuestas a dudas comunes sobre el dia."
+  },
+  "travel": {
+    "title": "Viaje",
+    "intro": "Hoteles, aeropuerto e informacion local."
+  },
+  "gallery": {
+    "uploadInfo": "Durante el día de la boda, esta página será un lugar para subir tus propias fotos de la celebración para que la pareja pueda conservarlas y disfrutarlas. ¡Vuelve aquí el gran día para la opción de subir!"
+  },
+  "schedule": {
+    "message": "El horario aún se está finalizando, ¡vuelve más tarde para más información!"
+  },
+  "common": {
+    "back": "Atras"
   }
 }

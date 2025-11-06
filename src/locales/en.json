@@ -8,7 +8,68 @@
       "registry": "Registry",
       "schedule": "Schedule",
       "rsvp": "RSVP",
-      "gallery": "Gallery"
-    }
+      "gallery": "Gallery",
+      "weddingParty": "Wedding Party",
+      "qa": "Q + A",
+      "travel": "Travel"
+    },
+    "daysToGo_one": "{{count}} Day to Go!",
+    "daysToGo_other": "{{count}} Days to Go!"
+  },
+  "registry": {
+    "title": "Registry",
+    "intro": "We are registered at the following places:",
+    "empty": "Registry links coming soon."
+  },
+  "rsvp": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "accept": "Accept",
+    "decline": "Decline",
+    "specialAccommodationsPlaceholder": "Special Accommodations (optional)",
+    "notesPrompt": "Want to leave additional information for the soon to be newly weds?",
+    "notesPlaceholder": "Write a note to the couple (optional)",
+    "phonePlaceholder": "Phone (optional)",
+    "emailPlaceholder": "Email (optional)",
+    "addressLabel": "Address (optional)",
+    "address1": "Address line 1",
+    "address2": "Address line 2",
+    "city": "City",
+    "state": "State",
+    "postalCode": "Postal Code",
+    "additionalGuests": "Additional Guests",
+    "addGuest": "Add Guest",
+    "remove": "Remove",
+    "additionalGuestsLimit": "Additional guests: {{used}} / {{max}} (remaining {{remaining}})",
+    "maxGuestsReached": "You've reached the maximum additional guests ({{max}}).",
+    "messagePlaceholder": "Message (optional)",
+    "submit": "Submit RSVP",
+    "toastNameRequired": "Please provide first and last name.",
+    "toastSubmitted": "RSVP submitted. Thank you!",
+    "toastUnexpected": "Unexpected response: {{status}}",
+    "toastFailed": "Submission failed: {{message}}",
+    "toastMetaFail": "Could not load RSVP details for token.",
+    "loadingMeta": "Loading your RSVP details..."
+  },
+  "weddingParty": {
+    "title": "Wedding Party",
+    "intro": "Meet the bridesmaids, groomsmen, and honored friends and family."
+  },
+  "qa": {
+    "title": "Q + A",
+    "intro": "Answers to common questions about the day."
+  },
+  "travel": {
+    "title": "Travel",
+    "intro": "Hotel blocks, airport info, and local tips."
+  },
+  "gallery": {
+    "uploadInfo": "During the wedding day, this page will be a place for you to upload your own photos from the celebration so the couple can keep and enjoy them. Check back here on the big day for the upload option!"
+  },
+  "schedule": {
+    "message": "Schedule is still being finalized, come back again for more!"
+  },
+  "common": {
+    "back": "Back"
   }
 }
