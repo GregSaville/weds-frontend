@@ -39,22 +39,32 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           port: ${{ secrets.DO_PORT || 22 }}
           script: |
+            echo "Checking for Node.js..."
+            if ! command -v node >/dev/null 2>&1; then
+              echo "Node not found. Installing Node.js 20..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+          
+            echo "Node version: $(node -v)"
+            echo "NPM version: $(npm -v)"
+          
             echo "Navigating into frontend directory..."
             cd /hidalgos/frontend
-
+          
             echo "Installing dependencies..."
             npm install --legacy-peer-deps
-
+          
             echo "Building production files..."
             npm run build
-
+          
             echo "Cleaning previous www content..."
             sudo rm -rf /var/www/hidalgos-frontend/*
-
+          
             echo "Copying new files..."
             sudo cp -r build/* /var/www/hidalgos-frontend/
-
+          
             echo "Reloading nginx..."
             sudo systemctl reload nginx
-
+          
             echo "Frontend deployment complete."
