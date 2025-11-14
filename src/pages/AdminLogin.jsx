@@ -19,6 +19,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const adminBase = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +28,7 @@ export default function AdminLogin() {
     const authHeader = "Basic " + btoa(`${username}:${password}`);
 
     try {
-      const res = await axios.get("http://localhost:8080/admin/health", {
+      const res = await axios.get(`${adminBase}/health`, {
         headers: { Authorization: authHeader },
       });
 
@@ -106,4 +107,3 @@ export default function AdminLogin() {
     </Flex>
   );
 }
-

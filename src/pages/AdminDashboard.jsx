@@ -65,7 +65,7 @@ export default function AdminDashboard() {
     bootstrap();
   }, [navigate, showToast]);
 
-  const adminBase = process.env.REACT_APP_ADMIN_BASE || "http://localhost:8080/admin";
+  const adminBase = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
 
   const reloadInvitees = async () => {
     try {
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
       if (view !== "rsvps") return;
       setRsvpsLoading(true);
       try {
-        const base = process.env.REACT_APP_ADMIN_BASE || "http://localhost:8080/admin";
+        const base = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
         const res = await axios.get(`${base}/rsvps`, {
           headers: { Authorization: getAuthHeader() },
         });

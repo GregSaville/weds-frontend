@@ -1,5 +1,7 @@
 // src/utils/auth.js
 const AUTH_KEY = "weds_auth";
+const adminBase = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
+const adminHealthEndpoint = `${adminBase.replace(/\/$/, "")}/health`;
 
 export function setAuth(username, password) {
   const token = btoa(`${username}:${password}`);
@@ -16,7 +18,7 @@ export async function checkAuth() {
   if (!header) return false;
 
   try {
-    const response = await fetch("http://localhost:8080/admin/health", {
+    const response = await fetch(adminHealthEndpoint, {
       headers: { Authorization: header },
     });
     return response.ok;

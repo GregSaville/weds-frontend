@@ -38,8 +38,8 @@ export default function Rsvp() {
   const [allowedPartySize, setAllowedPartySize] = useState(null);
   const [metaLoading, setMetaLoading] = useState(false);
 
-  const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || "http://localhost:8080/public/rsvp";
-  const metaBase = process.env.REACT_APP_RSVP_META_ENDPOINT || "http://localhost:8080/public/rsvp-meta";
+  const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || "/api/public/rsvp";
+  const metaBase = process.env.REACT_APP_RSVP_META_ENDPOINT || "/api/public/rsvp-meta";
 
   const addGuest = () => {
     const maxAdditional = allowedPartySize != null ? Math.max(allowedPartySize - 1, 0) : Infinity;
