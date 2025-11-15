@@ -18,8 +18,9 @@ import {
   Textarea,
   VStack,
   useDisclosure,
+  FieldRoot as FormControl,
+  FieldLabel as FormLabel,
 } from "@chakra-ui/react";
-import { FormControl, FormLabel } from "@chakra-ui/form-control";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkAuth, clearAuth, getAuthHeader } from "../utils/auth";
