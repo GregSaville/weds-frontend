@@ -19,6 +19,7 @@ import {
   VStack,
   useDisclosure,
 } from "@chakra-ui/react";
+import { FormControl, FormLabel } from "@chakra-ui/form-control";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkAuth, clearAuth, getAuthHeader } from "../utils/auth";
@@ -71,18 +72,6 @@ const InfoStat = ({ label, value }) => {
     </Box>
   );
 };
-
-const FormControl = ({ children, ...props }) => (
-  <Box {...props}>
-    {children}
-  </Box>
-);
-
-const FormLabel = ({ children, ...props }) => (
-  <Text as="label" display="block" fontWeight="600" mb={1} {...props}>
-    {children}
-  </Text>
-);
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
