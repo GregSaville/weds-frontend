@@ -1,23 +1,88 @@
 import {
+  Badge,
   Box,
   Button,
-  Heading,
-  Text,
-  VStack,
+  Dialog,
   Flex,
-  SimpleGrid,
+  Heading,
   HStack,
-  Table,
-  Badge,
-  Spacer,
   Input,
+  SimpleGrid,
+  Spacer,
+  Stack,
+  Separator,
+  Table,
+  Tag,
+  TagLabel,
+  Text,
   Textarea,
+  VStack,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkAuth, clearAuth, getAuthHeader } from "../utils/auth";
 import axios from "axios";
 import { useToast } from "../componets/ToastProvider";
+
+const RSVP_STATUS_META = {
+  ACCEPTED: { label: "Accepted", scheme: "green" },
+  DECLINED: { label: "Declined", scheme: "red" },
+  WAITLISTED: { label: "Waitlisted", scheme: "purple" },
+  PENDING: { label: "Pending", scheme: "gray" },
+};
+
+const RSVP_STATUS_ORDER = ["ACCEPTED", "PENDING", "DECLINED", "WAITLISTED"];
+
+const getStatusMeta = (status) => {
+  if (!status) return { label: "Pending", scheme: "gray" };
+  const key = String(status).toUpperCase();
+  if (RSVP_STATUS_META[key]) return RSVP_STATUS_META[key];
+  return { label: status, scheme: "blue" };
+};
+
+const StatusTag = ({ status, size = "sm" }) => {
+  const meta = getStatusMeta(status);
+  return (
+    <Tag
+      size={size}
+      colorScheme={meta.scheme}
+      variant="subtle"
+      borderRadius="full"
+      px={3}
+      py={1}
+      textTransform="uppercase"
+      letterSpacing="wide"
+      fontWeight="600"
+    >
+      <TagLabel>{meta.label}</TagLabel>
+    </Tag>
+  );
+};
+
+const InfoStat = ({ label, value }) => {
+  const displayValue = value === undefined || value === null || value === "" ? "-" : value;
+  return (
+    <Box>
+      <Text fontSize="xs" textTransform="uppercase" color="gray.500" letterSpacing="wide" mb={1}>
+        {label}
+      </Text>
+      <Text fontWeight="600">{displayValue}</Text>
+    </Box>
+  );
+};
+
+const FormControl = ({ children, ...props }) => (
+  <Box {...props}>
+    {children}
+  </Box>
+);
+
+const FormLabel = ({ children, ...props }) => (
+  <Text as="label" display="block" fontWeight="600" mb={1} {...props}>
+    {children}
+  </Text>
+);
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
@@ -36,6 +101,8 @@ export default function AdminDashboard() {
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { isOpen: isRsvpModalOpen, onOpen: openRsvpModal, onClose: closeRsvpModal } = useDisclosure();
+  const [isEditingRsvp, setIsEditingRsvp] = useState(false);
 
   const [expected, setExpected] = useState([]);
   const [expectedLoading, setExpectedLoading] = useState(false);
@@ -136,6 +203,22 @@ export default function AdminDashboard() {
     } catch { return String(ts); }
   };
 
+  const formatName = (name) => {
+    if (!name) return "-";
+    return `${name.firstName || ""} ${name.lastName || ""}`.trim() || "-";
+  };
+
+  const formatAddress = (address) => {
+    if (!address) return "-";
+    const parts = [
+      address.line1,
+      address.line2,
+      [address.city, address.state].filter(Boolean).join(", "),
+      address.postalCode || address.zip,
+    ].filter((part) => part && String(part).trim().length > 0);
+    return parts.length ? parts.join(", ") : "-";
+  };
+
   const handleLogout = () => {
     clearAuth();
     showToast("Logged out successfully", "info");
@@ -196,11 +279,18 @@ export default function AdminDashboard() {
     }
   };
 
+  const viewRsvpDetail = (id) => {
+    if (!id) return;
+    setSelectedRsvp(null);
+    setIsEditingRsvp(false);
+    openRsvpModal();
+    loadRsvpDetail(id);
+  };
+
   const openRsvpFromGuest = (rsvpId) => {
     if (!rsvpId) return;
     setView("rsvps");
-    // Load detail immediately; it does not depend on list state
-    loadRsvpDetail(rsvpId);
+    viewRsvpDetail(rsvpId);
   };
 
   const loadRsvpDetail = async (id) => {
@@ -210,12 +300,56 @@ export default function AdminDashboard() {
         headers: { Authorization: getAuthHeader() },
       });
       setSelectedRsvp(res.data);
+      setIsEditingRsvp(false);
     } catch (err) {
       showToast(`Failed to load RSVP: ${err.response?.data?.message || err.message}`, "error");
     } finally {
       setRsvpDetailLoading(false);
     }
   };
+
+  const updateRsvpField = (field, value) => {
+    setSelectedRsvp((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const updateAddressField = (field, value) => {
+    setSelectedRsvp((prev) => {
+      if (!prev) return prev;
+      const nextAddress = { ...(prev.address || {}), [field]: value };
+      return { ...prev, address: nextAddress };
+    });
+  };
+
+  const handleStatusChange = (status) => {
+    if (!status) return;
+    setSelectedRsvp((prev) => (prev ? { ...prev, status } : prev));
+  };
+
+  const handleCloseRsvpModal = () => {
+    closeRsvpModal();
+    setSelectedRsvp(null);
+    setIsEditingRsvp(false);
+  };
+
+  const handleCancelEdit = () => {
+    if (!selectedRsvp?.id) {
+      setIsEditingRsvp(false);
+      return;
+    }
+    setIsEditingRsvp(false);
+    loadRsvpDetail(selectedRsvp.id);
+  };
+
+  const additionalGuestCount = Array.isArray(selectedRsvp?.additionalGuests) ? selectedRsvp.additionalGuests.length : 0;
+  const totalGuestsResponding = selectedRsvp ? 1 + additionalGuestCount : 0;
+
+  useEffect(() => {
+    if (view !== "rsvps" && isRsvpModalOpen) {
+      closeRsvpModal();
+      setSelectedRsvp(null);
+      setIsEditingRsvp(false);
+    }
+  }, [view, isRsvpModalOpen, closeRsvpModal]);
 
   const saveRsvpDetail = async () => {
     if (!selectedRsvp?.id) return;
@@ -233,6 +367,7 @@ export default function AdminDashboard() {
         headers: { Authorization: getAuthHeader(), "Content-Type": "application/json" },
       });
       setSelectedRsvp(res.data);
+      setIsEditingRsvp(false);
       // refresh list lightly
       setRsvps((list) => list.map((r) => (r.id === res.data.id ? { ...r, status: res.data.status, message: res.data.message, name: res.data.name, createdAt: res.data.createdAt } : r)));
       showToast("RSVP updated", "success");
@@ -423,107 +558,32 @@ export default function AdminDashboard() {
               <Table.Body>
                 {rsvpsLoading ? (
                   <Table.Row>
-                    <Table.Cell colSpan={4}>Loading RSVPs…</Table.Cell>
+                    <Table.Cell colSpan={4}>Loading RSVPs...</Table.Cell>
                   </Table.Row>
                 ) : (
                   rsvps.map((r) => (
                     <Table.Row
                       key={r.id}
-                      onClick={() => loadRsvpDetail(r.id)}
+                      onClick={() => viewRsvpDetail(r.id)}
                       cursor="pointer"
                     >
-                      <Table.Cell>{r.name ? `${r.name.firstName || ''} ${r.name.lastName || ''}`.trim() : '-'}</Table.Cell>
+                      <Table.Cell>{r.name ? `${r.name.firstName || ""} ${r.name.lastName || ""}`.trim() : "-"}</Table.Cell>
                       <Table.Cell>
-                        <Badge colorScheme={r.status === 'ACCEPTED' ? 'green' : r.status === 'DECLINED' ? 'red' : 'gray'}>
-                          {String(r.status || '').toString()}
-                        </Badge>
+                        <StatusTag status={r.status} />
                       </Table.Cell>
-                      <Table.Cell>{r.message ? String(r.message).slice(0, 40) + (String(r.message).length > 40 ? '…' : '') : '-'}</Table.Cell>
+                      <Table.Cell>
+                        {r.message
+                          ? `${String(r.message).slice(0, 48)}${
+                              String(r.message).length > 48 ? "..." : ""
+                            }`
+                          : "-"}
+                      </Table.Cell>
                       <Table.Cell>{fmt(r.createdAt)}</Table.Cell>
                     </Table.Row>
                   ))
                 )}
               </Table.Body>
             </Table.Root>
-
-            {selectedRsvp && (
-              <Box mt={4} p={4} borderWidth="1px" borderRadius="md" bg="whiteAlpha.800">
-                <HStack justify="space-between" mb={2}>
-                  <Heading size="sm">RSVP Detail</Heading>
-                  <HStack>
-                    <Badge colorScheme={selectedRsvp.status === 'ACCEPTED' ? 'green' : selectedRsvp.status === 'DECLINED' ? 'red' : 'gray'}>
-                      {String(selectedRsvp.status || '').toString()}
-                    </Badge>
-                    <Button size="sm" variant="ghost" onClick={() => setSelectedRsvp(null)}>Close</Button>
-                  </HStack>
-                </HStack>
-                {rsvpDetailLoading ? (
-                  <Text>Loading…</Text>
-                ) : (
-                  <VStack align="stretch" spacing={3}>
-                    <HStack>
-                      <Box flex={1}>
-                        <Text fontSize="sm" color="gray.600">Name</Text>
-                        <Text>{selectedRsvp.name ? `${selectedRsvp.name.firstName || ''} ${selectedRsvp.name.lastName || ''}`.trim() : '-'}</Text>
-                      </Box>
-                    </HStack>
-                    <HStack>
-                      <Button size="sm" colorScheme={selectedRsvp.status === 'ACCEPTED' ? 'green' : 'gray'} variant={selectedRsvp.status === 'ACCEPTED' ? 'solid' : 'outline'} onClick={() => setSelectedRsvp((s) => ({ ...s, status: 'ACCEPTED' }))}>Accepted</Button>
-                      <Button size="sm" colorScheme={selectedRsvp.status === 'DECLINED' ? 'red' : 'gray'} variant={selectedRsvp.status === 'DECLINED' ? 'solid' : 'outline'} onClick={() => setSelectedRsvp((s) => ({ ...s, status: 'DECLINED' }))}>Declined</Button>
-                    </HStack>
-                    <HStack>
-                      <Input placeholder="Email" value={selectedRsvp.email || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, email: e.target.value }))} />
-                      <Input placeholder="Phone" value={selectedRsvp.phone || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, phone: e.target.value }))} />
-                    </HStack>
-                    <Box>
-                      <Text fontSize="sm" color="gray.600" mb={1}>Address</Text>
-                      <VStack align="stretch" spacing={2}>
-                        <Input placeholder="Line 1" value={selectedRsvp.address?.line1 || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, address: { ...(s.address||{}), line1: e.target.value } }))} />
-                        <Input placeholder="Line 2" value={selectedRsvp.address?.line2 || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, address: { ...(s.address||{}), line2: e.target.value } }))} />
-                        <HStack>
-                          <Input placeholder="City" value={selectedRsvp.address?.city || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, address: { ...(s.address||{}), city: e.target.value } }))} />
-                          <Input placeholder="State" value={selectedRsvp.address?.state || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, address: { ...(s.address||{}), state: e.target.value } }))} />
-                          <Input placeholder="Postal Code" value={selectedRsvp.address?.postalCode || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, address: { ...(s.address||{}), postalCode: e.target.value } }))} />
-                        </HStack>
-                      </VStack>
-                    </Box>
-                    <Textarea placeholder="Message" value={selectedRsvp.message || ''} onChange={(e) => setSelectedRsvp((s) => ({ ...s, message: e.target.value }))} />
-                    {selectedRsvp.specialAccommodations !== undefined && (
-                      <Box>
-                        <Text fontSize="sm" color="gray.600" mb={1}>Special Accommodations</Text>
-                        <Textarea value={selectedRsvp.specialAccommodations || ''} isDisabled placeholder="Special accommodations (read-only)" />
-                      </Box>
-                    )}
-                    {Array.isArray(selectedRsvp.additionalGuests) && selectedRsvp.additionalGuests.length > 0 && (
-                      <Box>
-                        <Text fontSize="sm" color="gray.600" mb={2}>Additional Guests ({selectedRsvp.additionalGuests.length})</Text>
-                        <Table.Root variant="outline" size="sm">
-                          <Table.Header>
-                            <Table.Row>
-                              <Table.ColumnHeader>First</Table.ColumnHeader>
-                              <Table.ColumnHeader>Last</Table.ColumnHeader>
-                              <Table.ColumnHeader>Special Accommodations</Table.ColumnHeader>
-                            </Table.Row>
-                          </Table.Header>
-                          <Table.Body>
-                            {selectedRsvp.additionalGuests.map((ag, idx) => (
-                              <Table.Row key={idx}>
-                                <Table.Cell>{ag.firstName || '-'}</Table.Cell>
-                                <Table.Cell>{ag.lastName || '-'}</Table.Cell>
-                                <Table.Cell>{ag.specialAccommodations || '-'}</Table.Cell>
-                              </Table.Row>
-                            ))}
-                          </Table.Body>
-                        </Table.Root>
-                      </Box>
-                    )}
-                    <HStack justify="flex-end">
-                      <Button size="sm" onClick={saveRsvpDetail} isLoading={rsvpSaving} colorScheme="yellow">Save</Button>
-                    </HStack>
-                  </VStack>
-                )}
-              </Box>
-            )}
           </>
         )}
 
@@ -543,7 +603,7 @@ export default function AdminDashboard() {
               <Table.Body>
                 {expectedLoading ? (
                   <Table.Row>
-                    <Table.Cell colSpan={3}>Loading…</Table.Cell>
+                    <Table.Cell colSpan={3}>Loading...</Table.Cell>
                   </Table.Row>
                 ) : (
                   expected.flatMap((a) => {
@@ -572,6 +632,199 @@ export default function AdminDashboard() {
           </>
         )}
       </Box>
+
+      <Dialog.Root
+        open={isRsvpModalOpen}
+        onOpenChange={({ open }) => {
+          if (!open) handleCloseRsvpModal();
+        }}
+      >
+        <Dialog.Backdrop bg="blackAlpha.500" backdropFilter="blur(4px)" />
+        <Dialog.Positioner>
+          <Dialog.Content maxW="920px" w="full" bg="white" borderRadius="lg" boxShadow="xl">
+            <Dialog.CloseTrigger position="absolute" top={4} right={4} rounded="full" />
+            <Dialog.Header>
+              <VStack align="flex-start" spacing={1}>
+                <Text fontSize="sm" color="gray.500">
+                  RSVP Detail
+                </Text>
+                <HStack spacing={3} flexWrap="wrap">
+                  <Heading size="md">{selectedRsvp ? formatName(selectedRsvp.name) : "RSVP"}</Heading>
+                  {selectedRsvp && <StatusTag status={selectedRsvp.status} size="md" />}
+                </HStack>
+                {selectedRsvp?.createdAt && (
+                  <Text fontSize="xs" color="gray.500">
+                    Submitted {fmt(selectedRsvp.createdAt)}
+                  </Text>
+                )}
+              </VStack>
+            </Dialog.Header>
+            <Dialog.Body>
+              {rsvpDetailLoading ? (
+                <Flex minH="220px" align="center" justify="center">
+                  <Text>Loading RSVP...</Text>
+                </Flex>
+              ) : selectedRsvp ? (
+                <VStack align="stretch" spacing={6}>
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Guest Overview
+                    </Heading>
+                    <Separator mt={1} />
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mt={4}>
+                      <InfoStat label="Primary Guest" value={formatName(selectedRsvp.name)} />
+                      <InfoStat label="Guests Responding" value={totalGuestsResponding ? totalGuestsResponding.toString() : "-"} />
+                      <InfoStat label="Email" value={selectedRsvp.email || "-"} />
+                      <InfoStat label="Phone" value={selectedRsvp.phone || "-"} />
+                    </SimpleGrid>
+                  </Box>
+
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Message
+                    </Heading>
+                    <Separator mt={1} />
+                    <Text mt={3} color={selectedRsvp.message ? "gray.800" : "gray.500"}>
+                      {selectedRsvp.message || "No personal message was included."}
+                    </Text>
+                  </Box>
+
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Address
+                    </Heading>
+                    <Separator mt={1} />
+                    <Text mt={3} color={selectedRsvp.address ? "gray.800" : "gray.500"}>
+                      {formatAddress(selectedRsvp.address)}
+                    </Text>
+                  </Box>
+
+                  {selectedRsvp.specialAccommodations && (
+                    <Box>
+                      <Heading size="sm" color="teal.700">
+                        Special Accommodations
+                      </Heading>
+                      <Separator mt={1} />
+                      <Text mt={3}>{selectedRsvp.specialAccommodations}</Text>
+                    </Box>
+                  )}
+
+                  {additionalGuestCount > 0 && (
+                    <Box>
+                      <Heading size="sm" color="teal.700">
+                        Additional Guests ({additionalGuestCount})
+                      </Heading>
+                      <Separator mt={1} />
+                      <Stack mt={4} spacing={3}>
+                        {selectedRsvp.additionalGuests.map((guest, idx) => (
+                          <Box key={idx} p={3} borderWidth="1px" borderRadius="md" bg="gray.50">
+                            <Text fontWeight="600">
+                              {`${guest.firstName || ""} ${guest.lastName || ""}`.trim() || `Guest ${idx + 1}`}
+                            </Text>
+                            {guest.specialAccommodations && (
+                              <Text fontSize="sm" color="gray.600">
+                                {guest.specialAccommodations}
+                              </Text>
+                            )}
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+
+                  {isEditingRsvp && (
+                    <Box>
+                      <Heading size="sm" color="teal.700">
+                        Update RSVP
+                      </Heading>
+                      <Separator mt={1} />
+                      <VStack align="stretch" spacing={4} mt={4}>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Response Status</FormLabel>
+                          <Stack direction="row" flexWrap="wrap" spacing={2}>
+                            {RSVP_STATUS_ORDER.map((statusKey) => (
+                              <Button
+                                key={statusKey}
+                                size="sm"
+                                variant={String(selectedRsvp.status || "").toUpperCase() === statusKey ? "solid" : "outline"}
+                                colorScheme={getStatusMeta(statusKey).scheme}
+                                onClick={() => handleStatusChange(statusKey)}
+                              >
+                                {getStatusMeta(statusKey).label}
+                              </Button>
+                            ))}
+                          </Stack>
+                        </FormControl>
+                        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                          <FormControl>
+                            <FormLabel fontSize="sm">Email</FormLabel>
+                            <Input value={selectedRsvp.email || ""} onChange={(e) => updateRsvpField("email", e.target.value)} placeholder="Email address" />
+                          </FormControl>
+                          <FormControl>
+                            <FormLabel fontSize="sm">Phone</FormLabel>
+                            <Input value={selectedRsvp.phone || ""} onChange={(e) => updateRsvpField("phone", e.target.value)} placeholder="Phone number" />
+                          </FormControl>
+                        </SimpleGrid>
+                        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                          <FormControl>
+                            <FormLabel fontSize="sm">Address Line 1</FormLabel>
+                            <Input value={selectedRsvp.address?.line1 || ""} onChange={(e) => updateAddressField("line1", e.target.value)} placeholder="Street address" />
+                          </FormControl>
+                          <FormControl>
+                            <FormLabel fontSize="sm">Address Line 2</FormLabel>
+                            <Input value={selectedRsvp.address?.line2 || ""} onChange={(e) => updateAddressField("line2", e.target.value)} placeholder="Apartment, suite, etc." />
+                          </FormControl>
+                        </SimpleGrid>
+                        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                          <FormControl>
+                            <FormLabel fontSize="sm">City</FormLabel>
+                            <Input value={selectedRsvp.address?.city || ""} onChange={(e) => updateAddressField("city", e.target.value)} placeholder="City" />
+                          </FormControl>
+                          <FormControl>
+                            <FormLabel fontSize="sm">State / Province</FormLabel>
+                            <Input value={selectedRsvp.address?.state || ""} onChange={(e) => updateAddressField("state", e.target.value)} placeholder="State" />
+                          </FormControl>
+                          <FormControl>
+                            <FormLabel fontSize="sm">Postal Code</FormLabel>
+                            <Input value={selectedRsvp.address?.postalCode || ""} onChange={(e) => updateAddressField("postalCode", e.target.value)} placeholder="Postal code" />
+                          </FormControl>
+                        </SimpleGrid>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Message</FormLabel>
+                          <Textarea value={selectedRsvp.message || ""} onChange={(e) => updateRsvpField("message", e.target.value)} placeholder="Add an internal note" rows={4} />
+                        </FormControl>
+                      </VStack>
+                    </Box>
+                  )}
+                </VStack>
+              ) : (
+                <Text color="gray.500">Select an RSVP to view its details.</Text>
+              )}
+            </Dialog.Body>
+            <Dialog.Footer justifyContent="space-between" flexWrap="wrap" gap={3}>
+              <Button variant="ghost" onClick={handleCloseRsvpModal}>
+                Close
+              </Button>
+              {selectedRsvp && !rsvpDetailLoading && (
+                isEditingRsvp ? (
+                  <HStack spacing={3}>
+                    <Button variant="ghost" onClick={handleCancelEdit} isDisabled={rsvpSaving}>
+                      Cancel
+                    </Button>
+                    <Button colorScheme="yellow" onClick={saveRsvpDetail} isLoading={rsvpSaving}>
+                      Save Changes
+                    </Button>
+                  </HStack>
+                ) : (
+                  <Button colorScheme="yellow" onClick={() => setIsEditingRsvp(true)}>
+                    Edit RSVP
+                  </Button>
+                )
+              )}
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
     </VStack>
   );
 }
