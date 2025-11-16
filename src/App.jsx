@@ -11,10 +11,25 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import ProtectedRoute from './componets/ProtectedRoute';
 import NotFound from './pages/NotFound';
+import { Box } from '@chakra-ui/react';
 
 function App() {
   return (
-      <Routes>
+    <>
+       <Box
+                position="fixed"
+                inset={0}
+                zIndex={-1}
+                bg="#fff8e6"
+                backgroundImage={`radial-gradient(rgba(255, 255, 255, 0.35) 1px, rgba(255, 255, 255, 0) 1px),
+                  radial-gradient(rgba(0, 0, 0, 0.03) 1px, rgba(0, 0, 0, 0) 1px)`}
+                backgroundPosition="0 0, 2px 2px"
+                backgroundSize="8px 8px, 8px 8px"
+                backgroundRepeat="repeat"
+                backgroundAttachment="fixed"
+                pointerEvents="none"
+        />
+              <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/registry" element={<Registry />} />
@@ -35,6 +50,7 @@ function App() {
 
         <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   );
 }
 

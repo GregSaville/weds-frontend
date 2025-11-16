@@ -53,11 +53,101 @@
   },
   "weddingParty": {
     "title": "Wedding Party",
-    "intro": "Meet the bridesmaids, groomsmen, and honored friends and family."
+    "intro": "Meet the bridesmaids, groomsmen, and honored friends and family.",
+    "members": [
+      {
+        "name": "Mike and Jennifer Thomsen",
+        "role": "-",
+        "relation": "Parents of the Bride"
+      },
+      {
+        "name": "Joel and Elisa Hidalgo",
+        "role": "-",
+        "relation": "Parents of the Groom"
+      },
+      {
+        "name": "Shelbie Louwagie",
+        "role": "Mattron of Honor",
+        "relation": "Sister of the Bride"
+      },
+      {
+        "name": "Moises Hidalgo",
+        "role": "Best Man",
+        "relation": "Brother of the Groom"
+      },
+      {
+        "name": "Hannah Budke",
+        "role": "Bridesmaid",
+        "relation": "Friend of the Bride"
+      },
+      {
+        "name": "JJ Hidalgo",
+        "role": "Groomsman",
+        "relation": "Brother of the Groom"
+      },
+      {
+        "name": "Kaitlan Heyne",
+        "role": "Bridesmaid",
+        "relation": "Friend of the Bride"
+      },
+      {
+        "name": "Ayden Friese",
+        "role": "Groomsman",
+        "relation": "Friend of the Groom"
+      },
+      {
+        "name": "Natasha Reinsma",
+        "role": "Bridesmaid",
+        "relation": "Friend of the Bride"
+      },
+      {
+        "name": "John Lafond",
+        "role": "Groomsman",
+        "relation": "Friend of the Groom"
+      },
+      {
+        "name": "Courtney Toulouse",
+        "role": "Bridesmaid",
+        "relation": "Friend of the Bride"
+      },
+      {
+        "name": "Mitchell Carlson",
+        "role": "Groomsman",
+        "relation": "Friend of the Groom"
+      },
+      {
+        "name": "Gregory Saville",
+        "role": "Usher",
+        "relation": "Friend of the Groom"
+      },
+      {
+        "name": "Dalton Anderson",
+        "role": "Usher",
+        "relation": "Friend of the Groom"
+      }
+    ]
   },
   "qa": {
     "title": "Q + A",
-    "intro": "Answers to common questions about the day."
+    "intro": "Answers to common questions about the day.",
+    "faqs": [
+      {
+        "question": "When do we need to RSVP by?",
+        "answer": "Please RSVP by..."
+      },
+      {
+        "question": "Is there a dress code?",
+        "answer": "We’d love to see our family and friends dressed up for our big day!"
+      },
+      {
+        "question": "Can I bring a guest/date?",
+        "answer": "Due to limited space, we are only able to accommodate those guests formally invited on your wedding invitation. If you received a plus one, they will appear under your name when you RSVP. Thank you for understanding, and please feel free to reach out with any questions."
+      },
+      {
+        "question": "What time should I arrive?",
+        "answer": "The ceremony will begin promptly at ..... Please arrive at least 15-30 minutes prior to ensure you have time to park and find a seat."
+      }
+    ]
   },
   "travel": {
     "title": "Travel",

@@ -53,11 +53,101 @@
   },
   "weddingParty": {
     "title": "Corte Nupcial",
-    "intro": "Conozca a damas, padrinos y personas especiales."
+    "intro": "Conozca a damas, padrinos y personas especiales.",
+    "members": [
+      {
+        "name": "Mike and Jennifer Thomsen",
+        "role": "-",
+        "relation": "Padres de la novia"
+      },
+      {
+        "name": "Joel and Elisa Hidalgo",
+        "role": "-",
+        "relation": "Padres del novio"
+      },
+      {
+        "name": "Shelbie Louwagie",
+        "role": "Madrina de honor",
+        "relation": "Hermana de la novia"
+      },
+      {
+        "name": "Moises Hidalgo",
+        "role": "Padrino principal",
+        "relation": "Hermano del novio"
+      },
+      {
+        "name": "Hannah Budke",
+        "role": "Dama de honor",
+        "relation": "Amiga de la novia"
+      },
+      {
+        "name": "JJ Hidalgo",
+        "role": "Padrino de boda",
+        "relation": "Hermano del novio"
+      },
+      {
+        "name": "Kaitlan Heyne",
+        "role": "Dama de honor",
+        "relation": "Amiga de la novia"
+      },
+      {
+        "name": "Ayden Friese",
+        "role": "Padrino de boda",
+        "relation": "Amigo del novio"
+      },
+      {
+        "name": "Natasha Reinsma",
+        "role": "Dama de honor",
+        "relation": "Amiga de la novia"
+      },
+      {
+        "name": "John Lafond",
+        "role": "Padrino de boda",
+        "relation": "Amigo del novio"
+      },
+      {
+        "name": "Courtney Toulouse",
+        "role": "Dama de honor",
+        "relation": "Amiga de la novia"
+      },
+      {
+        "name": "Mitchell Carlson",
+        "role": "Padrino de boda",
+        "relation": "Amigo del novio"
+      },
+      {
+        "name": "Gregory Saville",
+        "role": "Acomodador",
+        "relation": "Amigo del novio"
+      },
+      {
+        "name": "Dalton Anderson",
+        "role": "Acomodador",
+        "relation": "Amigo del novio"
+      }
+    ]
   },
   "qa": {
     "title": "Preguntas y Respuestas",
-    "intro": "Respuestas a dudas comunes sobre el dia."
+    "intro": "Respuestas a dudas comunes sobre el dia.",
+    "faqs": [
+      {
+        "question": "¿Cuándo debemos confirmar nuestra reservación?",
+        "answer": "Por favor confirmen antes de...."
+      },
+      {
+        "question": "¿Hay un código de vestimenta?",
+        "answer": "Nos gustaría que todos vengan bien vestidos a nuestro día"
+      },
+      {
+        "question": "¿Puedo traer alguien mas?",
+        "answer": "Debido al espacio limitado, solo podemos atender a los que han sido formalmente invitados en su invitación de boda. Si recibió un acompañante, aparecerá bajo su nombre al confirmar su reservación. Gracias por su comprensión y no dude en contactarnos si tiene alguna pregunta."
+      },
+      {
+        "question": "¿A qué hora debo llegar?",
+        "answer": "La ceremonia comenzará puntualmente a las __. Por favor, llegue al menos 15-30 minutos antes para asegurarse de tener tiempo de estacionarse y encontrar un asiento."
+      }
+    ]
   },
   "travel": {
     "title": "Viaje",
