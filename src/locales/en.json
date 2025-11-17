@@ -60,7 +60,8 @@
     "inviteCodePlaceholder": "Enter invite code",
     "inviteCodeLoad": "Load invite",
     "inviteOnlyReminder": "Load your invite code to enable submitting.",
-    "strangerCta": "Don't have a code? RSVP as a stranger!"
+    "strangerCta": "Don't have a code? RSVP as a stranger!",
+    "lockedMessage": "Contact David and Rachel to make any changes to your RSVP."
   },
   "weddingParty": {
     "title": "Wedding Party",

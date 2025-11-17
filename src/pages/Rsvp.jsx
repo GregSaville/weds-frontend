@@ -42,11 +42,13 @@ export default function Rsvp() {
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [inviteReady, setInviteReady] = useState(false);
   const [isStrangerMode, setIsStrangerMode] = useState(false);
+  const [sessionLockedId, setSessionLockedId] = useState("");
 
   const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
   const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || `${publicBase}/rsvp`;
   const metaBase = process.env.REACT_APP_RSVP_META_ENDPOINT || `${publicBase}/rsvp-meta`;
   const publicSettingsEndpoint = process.env.REACT_APP_PUBLIC_SETTINGS_ENDPOINT || `${publicBase}/settings`;
+  const SESSION_STORAGE_KEY = "rsvpSessionId";
 
   const addGuest = () => {
     const maxAdditional = allowedPartySize != null ? Math.max(allowedPartySize - 1, 0) : Infinity;
@@ -145,6 +147,18 @@ export default function Rsvp() {
     loadSettings();
   }, [publicSettingsEndpoint, showToast, t]);
 
+  useEffect(() => {
+    // If a session id already exists, lock the form to prevent duplicate submissions.
+    try {
+      const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (stored) {
+        setSessionLockedId(stored);
+      }
+    } catch (err) {
+      console.error("Failed to read RSVP session id from storage", err);
+    }
+  }, [SESSION_STORAGE_KEY]);
+
   const inviteOnly = !settings.rsvpOpenToStrangers;
   const inviteRequiredAndMissing = !inviteReady;
 
@@ -214,6 +228,16 @@ export default function Rsvp() {
       });
       if (res.status >= 200 && res.status < 300) {
         showToast(t("rsvp.toastSubmitted"), "success");
+        const generatedSessionId =
+          res.data?.sessionId ||
+          (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" && crypto.randomUUID()) ||
+          `rsvp-${Date.now()}`;
+        try {
+          localStorage.setItem(SESSION_STORAGE_KEY, generatedSessionId);
+          setSessionLockedId(generatedSessionId);
+        } catch (storageErr) {
+          console.error("Failed to persist RSVP session id", storageErr);
+        }
         // Optionally clear
         // window.location.reload();
       } else {
@@ -427,12 +451,17 @@ export default function Rsvp() {
             )}
 
             <Box my={2} h="1px" bg="blackAlpha.300" />
+            {sessionLockedId && (
+              <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800">
+                {t("rsvp.lockedMessage")}
+              </Alert>
+            )}
             <Box w={["100%","70%","60%"]} mx="auto">
               <Button
                 w="100%"
                 colorScheme="yellow"
                 type="submit"
-                isDisabled={settings.rsvpClosed || inviteRequiredAndMissing}
+                isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || !!sessionLockedId}
               >
                 {t("rsvp.submit")}
               </Button>
