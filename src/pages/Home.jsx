@@ -57,7 +57,7 @@ export default function Home() {
           textAlign="center"
           position="relative"
           pt={28}
-          pb={20}
+          pb={4}
           px={4}
         >
           <TitleWithBrackets fontSize={["3xl", "5xl", "6xl"]}>
@@ -78,7 +78,7 @@ export default function Home() {
                 </Text>
               )}
               {daysToGo !== null && (
-                <Heading fontSize={["lg", "xl"]} color="#b08649">
+                <Heading fontSize={["2xl", "3xl", "4xl"]} color="#b08649" lineHeight="1.1">
                   {t("home.daysToGo", { count: daysToGo })}
                 </Heading>
               )}
