@@ -299,23 +299,6 @@ export default function Rsvp() {
               {t("rsvp.closedEnded")}
             </Text>
           </Box>
-        ) : isSessionLocked ? (
-          <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
-            <VStack spacing={3} align="stretch" color="black" textAlign="center">
-              <Heading size="lg">{t("rsvp.submitSuccessTitle")}</Heading>
-              <Text fontSize="md" color="gray.800">
-                {t("rsvp.submitSuccessBody")}
-              </Text>
-              {justSubmitted && (
-                <Alert status="success" borderRadius="md" bg="green.50" color="gray.800" justifyContent="center">
-                  {t("rsvp.toastSubmitted")}
-                </Alert>
-              )}
-              <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800" justifyContent="center">
-                {t("rsvp.lockedMessage")}
-              </Alert>
-            </VStack>
-          </Box>
         ) : inviteRequiredAndMissing ? (
           <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
             <VStack spacing={3} align="stretch" color="black">
@@ -479,20 +462,30 @@ export default function Rsvp() {
             )}
 
             <Box my={2} h="1px" bg="blackAlpha.300" />
-            {isSessionLocked && (
-              <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800">
-                {t("rsvp.lockedMessage")}
-              </Alert>
-            )}
             <Box w={["100%","70%","60%"]} mx="auto">
-              <Button
-                w="100%"
-                colorScheme="yellow"
-                type="submit"
-                isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || isSessionLocked}
-              >
-                {t("rsvp.submit")}
-              </Button>
+              {isSessionLocked ? (
+                <VStack spacing={3} align="stretch" textAlign="center">
+                  <Heading size="md">{t("rsvp.submitSuccessTitle")}</Heading>
+                  <Text color="gray.800">{t("rsvp.submitSuccessBody")}</Text>
+                  {justSubmitted && (
+                    <Alert status="success" borderRadius="md" bg="green.50" color="gray.800" justifyContent="center">
+                      {t("rsvp.toastSubmitted")}
+                    </Alert>
+                  )}
+                  <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800" justifyContent="center">
+                    {t("rsvp.lockedMessage")}
+                  </Alert>
+                </VStack>
+              ) : (
+                <Button
+                  w="100%"
+                  colorScheme="yellow"
+                  type="submit"
+                  isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || isSessionLocked}
+                >
+                  {t("rsvp.submit")}
+                </Button>
+              )}
             </Box>
           </VStack>
         </Box>
