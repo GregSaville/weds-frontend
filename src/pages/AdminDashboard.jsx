@@ -440,11 +440,11 @@ export default function AdminDashboard() {
     try {
       const body = {
         status: overrides.status ?? selectedRsvp.status,
-        email: overrides.email ?? selectedRsvp.email || null,
-        phone: overrides.phone ?? selectedRsvp.phone || null,
-        address: overrides.address ?? selectedRsvp.address || null,
-        additionalGuests: overrides.additionalGuests ?? selectedRsvp.additionalGuests || null,
-        message: overrides.message ?? selectedRsvp.message || null,
+        email: overrides.email ?? selectedRsvp.email ?? null,
+        phone: overrides.phone ?? selectedRsvp.phone ?? null,
+        address: overrides.address ?? selectedRsvp.address ?? null,
+        additionalGuests: overrides.additionalGuests ?? selectedRsvp.additionalGuests ?? null,
+        message: overrides.message ?? selectedRsvp.message ?? null,
       };
       const res = await axios.post(`${adminBase}/rsvps/${selectedRsvp.id}`, body, {
         headers: { Authorization: getAuthHeader(), "Content-Type": "application/json" },
