@@ -176,7 +176,7 @@ export default function Rsvp() {
   const inviteOnly = !settings.rsvpOpenToStrangers;
   const inviteRequiredAndMissing = !inviteReady;
   const isSessionLocked = typeof sessionLockedId === "string" && sessionLockedId.trim().length > 0;
-  const showLockedNotice = isSessionLocked || hasResponded;
+  const showLockedNotice = isSessionLocked || hasResponded || justSubmitted;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -248,14 +248,17 @@ export default function Rsvp() {
           (typeof res.data?.sessionId === "string" && res.data.sessionId.trim()) ||
           (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" && crypto.randomUUID()) ||
           `rsvp-${Date.now()}`;
+        const safeId = String(generatedSessionId);
         try {
-          const safeId = String(generatedSessionId);
+          // Persist the lock marker so refreshes keep the user in the success state.
           localStorage.setItem(SESSION_STORAGE_KEY, safeId);
-          setSessionLockedId(safeId);
-          setJustSubmitted(true);
         } catch (storageErr) {
           console.error("Failed to persist RSVP session id", storageErr);
         }
+        // Always update in-memory state, even if storage fails
+        setSessionLockedId(safeId);
+        setHasResponded(true);
+        setJustSubmitted(true);
         // Optionally clear
         // window.location.reload();
       } else {
