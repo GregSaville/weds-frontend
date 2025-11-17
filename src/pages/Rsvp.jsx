@@ -113,8 +113,13 @@ export default function Rsvp() {
   // Prepopulate from token meta
   useEffect(() => {
     const token = searchParams.get("token");
-    setTokenInput(token || "");
-    fetchRsvpMeta(token);
+    if (token) {
+      setTokenInput(token);
+      fetchRsvpMeta(token);
+    } else {
+      setTokenInput("");
+      setInviteReady(false);
+    }
   }, [searchParams, fetchRsvpMeta]);
 
   useEffect(() => {
