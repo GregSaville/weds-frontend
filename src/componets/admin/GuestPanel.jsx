@@ -118,11 +118,20 @@ export default function GuestPanel({
                   <HStack justify="space-between">
                     <Text fontWeight="semibold">RSVP</Text>
                     {g.rsvpId != null ? (
-                      <Badge colorScheme="green" as="button" onClick={() => openRsvpFromGuest(g.rsvpId)}>
+                      <Badge
+                        as="button"
+                        colorPalette="blue"
+                        variant="solid"
+                        onClick={() => openRsvpFromGuest(g.rsvpId)}
+                        cursor="pointer"
+                        boxShadow="sm"
+                      >
                         Responded
                       </Badge>
                     ) : (
-                      <Badge colorScheme="gray">Pending</Badge>
+                      <Badge colorPalette="yellow" variant="solid" boxShadow="sm">
+                        Pending
+                      </Badge>
                     )}
                   </HStack>
                   <HStack spacing={3}>
@@ -176,16 +185,20 @@ export default function GuestPanel({
                   <Text fontWeight="semibold">RSVP:</Text>
                   {g.rsvpId != null ? (
                     <Badge
-                      colorScheme="green"
+                      colorPalette="blue"
+                      variant="solid"
                       as="button"
                       onClick={() => openRsvpFromGuest(g.rsvpId)}
                       cursor="pointer"
+                      boxShadow="sm"
                       title="View RSVP details"
                     >
                       Responded
                     </Badge>
                   ) : (
-                    <Badge colorScheme="gray">Pending</Badge>
+                    <Badge colorPalette="yellow" variant="solid" boxShadow="sm">
+                      Pending
+                    </Badge>
                   )}
                 </HStack>
                 <HStack spacing={3}>

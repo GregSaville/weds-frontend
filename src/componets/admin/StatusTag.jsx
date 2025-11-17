@@ -5,6 +5,8 @@ const STATUS_META = {
   DECLINED: { label: "Declined", palette: "red" },
   WAITLISTED: { label: "Waitlisted", palette: "purple" },
   PENDING: { label: "Pending", palette: "gray" },
+  PENDING_REVIEW: { label: "Pending Review", palette: "yellow" },
+  APPROVED: { label: "Approved", palette: "blue" },
   OPEN: { label: "Open", palette: "green" },
   CLOSED: { label: "Closed", palette: "red" },
   ANYONE: { label: "Anyone", palette: "green" },
