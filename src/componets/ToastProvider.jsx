@@ -8,7 +8,11 @@ export const ToastProvider = ({ children }) => {
 
   const showToast = useCallback((message, status = "info", duration = 3000) => {
     const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, status, duration }]);
+    const safeMessage =
+      typeof message === "string"
+        ? message
+        : message?.toString?.() || "Something went wrong.";
+    setToasts((prev) => [...prev, { id, message: safeMessage, status, duration }]);
 
     if (duration > 0) {
       setTimeout(() => {

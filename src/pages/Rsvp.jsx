@@ -248,7 +248,12 @@ export default function Rsvp() {
         showToast(t("rsvp.toastUnexpected", { status: res.status }), "error");
       }
     } catch (err) {
-      showToast(t("rsvp.toastFailed", { message: err.response?.data?.message || err.message }), "error");
+      const serverMessage = err?.response?.data?.message;
+      const msg =
+        typeof serverMessage === "string"
+          ? serverMessage
+          : err?.message || "Unknown error";
+      showToast(t("rsvp.toastFailed", { message: msg }), "error");
     }
   };
 
