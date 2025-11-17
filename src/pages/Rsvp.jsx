@@ -159,10 +159,11 @@ export default function Rsvp() {
     } catch (err) {
       console.error("Failed to read RSVP session id from storage", err);
     }
-  }, [SESSION_STORAGE_KEY]);
+  }, []);
 
   const inviteOnly = !settings.rsvpOpenToStrangers;
   const inviteRequiredAndMissing = !inviteReady;
+  const isSessionLocked = typeof sessionLockedId === "string" && sessionLockedId.trim().length > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -454,7 +455,7 @@ export default function Rsvp() {
             )}
 
             <Box my={2} h="1px" bg="blackAlpha.300" />
-            {typeof sessionLockedId === "string" && sessionLockedId && (
+            {isSessionLocked && (
               <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800">
                 {t("rsvp.lockedMessage")}
               </Alert>
@@ -464,11 +465,7 @@ export default function Rsvp() {
                 w="100%"
                 colorScheme="yellow"
                 type="submit"
-                isDisabled={
-                  settings.rsvpClosed ||
-                  inviteRequiredAndMissing ||
-                  (typeof sessionLockedId === "string" && sessionLockedId.trim())
-                }
+                isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || isSessionLocked}
               >
                 {t("rsvp.submit")}
               </Button>
