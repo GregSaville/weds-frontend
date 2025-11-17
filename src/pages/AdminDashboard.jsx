@@ -58,6 +58,10 @@ const getStatusMeta = (status) => {
     DECLINED: { label: "Declined", scheme: "red" },
     WAITLISTED: { label: "Waitlisted", scheme: "purple" },
     PENDING: { label: "Pending", scheme: "gray" },
+    OPEN: { label: "Open", scheme: "green" },
+    CLOSED: { label: "Closed", scheme: "red" },
+    ANYONE: { label: "Anyone", scheme: "green" },
+    INVITE: { label: "Invite Only", scheme: "blue" },
   };
   return map[key] || { label: status, scheme: "blue" };
 };
@@ -103,6 +107,7 @@ export default function AdminDashboard() {
   const [settings, setSettings] = useState({ rsvpOpenToStrangers: false, rsvpClosed: false });
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [isEditingSettings, setIsEditingSettings] = useState(false);
 
   const totals = useMemo(() => {
     const total = invitees.length;
@@ -113,8 +118,6 @@ export default function AdminDashboard() {
   }, [invitees, rsvps, expected, turnoutCount]);
 
   const adminBase = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
-  const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
-  const publicSettingsEndpoint = process.env.REACT_APP_PUBLIC_SETTINGS_ENDPOINT || `${publicBase}/settings`;
 
   const reloadInvitees = useCallback(async () => {
     try {
@@ -179,7 +182,9 @@ export default function AdminDashboard() {
   const loadSettings = useCallback(async () => {
     setSettingsLoading(true);
     try {
-      const res = await axios.get(publicSettingsEndpoint);
+      const res = await axios.get(`${adminBase}/settings`, {
+        headers: { Authorization: getAuthHeader() },
+      });
       if (res.data) {
         setSettings({
           rsvpOpenToStrangers: !!res.data.rsvpOpenToStrangers,
@@ -190,8 +195,9 @@ export default function AdminDashboard() {
       showToast(`Error fetching settings: ${err.response?.data?.message || err.message}`, "error");
     } finally {
       setSettingsLoading(false);
+      setIsEditingSettings(false);
     }
-  }, [publicSettingsEndpoint, showToast]);
+  }, [adminBase, showToast]);
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -469,7 +475,10 @@ export default function AdminDashboard() {
           icon={<SettingsGlyph />}
           variant="outline"
           colorScheme="yellow"
-          onClick={openSettings}
+          onClick={() => {
+            openSettings();
+            loadSettings();
+          }}
           isDisabled={settingsLoading}
         />
         <Button colorScheme="red" variant="outline" onClick={handleLogout}>
@@ -587,7 +596,37 @@ export default function AdminDashboard() {
         <Drawer.Positioner>
           <Drawer.Content>
             <Drawer.CloseTrigger />
-            <Drawer.Header borderBottomWidth="1px">Settings</Drawer.Header>
+            <Drawer.Header borderBottomWidth="1px">
+              <HStack justify="space-between" align="center">
+                <Heading size="sm">Settings</Heading>
+                {!settingsLoading && (
+                  <IconButton
+                    size="sm"
+                    aria-label={isEditingSettings ? "Finish editing settings" : "Edit settings"}
+                    variant={isEditingSettings ? "solid" : "ghost"}
+                    colorScheme="yellow"
+                    onClick={() => setIsEditingSettings((v) => !v)}
+                    icon={
+                      <Box as="span" display="inline-flex">
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                      </Box>
+                    }
+                  />
+                )}
+              </HStack>
+            </Drawer.Header>
             <Drawer.Body>
             {settingsLoading ? (
               <Text color="gray.600">Loading settings...</Text>
@@ -603,13 +642,17 @@ export default function AdminDashboard() {
                         Prevent all new submissions.
                       </Text>
                     </Box>
-                    <Switch
-                      size="lg"
-                      isChecked={settings.rsvpClosed}
-                      onChange={() => toggleSetting("rsvpClosed")}
-                      isDisabled={settingsSaving}
-                      colorScheme="yellow"
-                    />
+                    {isEditingSettings ? (
+                      <Switch
+                        size="lg"
+                        isChecked={settings.rsvpClosed}
+                        onChange={() => toggleSetting("rsvpClosed")}
+                        isDisabled={settingsSaving}
+                        colorScheme="yellow"
+                      />
+                    ) : (
+                      <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
+                    )}
                   </HStack>
                   <Text mt={2} fontSize="sm" color="gray.600">
                     Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
@@ -626,13 +669,17 @@ export default function AdminDashboard() {
                         Let anyone RSVP without an invite token.
                       </Text>
                     </Box>
-                    <Switch
-                      size="lg"
-                      isChecked={settings.rsvpOpenToStrangers}
-                      onChange={() => toggleSetting("rsvpOpenToStrangers")}
-                      isDisabled={settingsSaving}
-                      colorScheme="yellow"
-                    />
+                    {isEditingSettings ? (
+                      <Switch
+                        size="lg"
+                        isChecked={settings.rsvpOpenToStrangers}
+                        onChange={() => toggleSetting("rsvpOpenToStrangers")}
+                        isDisabled={settingsSaving}
+                        colorScheme="yellow"
+                      />
+                    ) : (
+                      <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
+                    )}
                   </HStack>
                   <Text mt={2} fontSize="sm" color="gray.600">
                     Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
