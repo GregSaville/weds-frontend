@@ -479,7 +479,7 @@ export default function Rsvp() {
             <Box w={["100%","70%","60%"]} mx="auto">
               {(isSessionLocked || hasResponded) ? (
                 <VStack spacing={3} align="stretch" textAlign="center">
-                  <Heading size="md">
+                  {/* <Heading size="md">
                     {hasResponded ? t("rsvp.alreadyRespondedTitle") : t("rsvp.submitSuccessTitle")}
                   </Heading>
                   <Text color="gray.800">
@@ -492,7 +492,7 @@ export default function Rsvp() {
                   )}
                   <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800" justifyContent="center">
                     {t("rsvp.lockedMessage")}
-                  </Alert>
+                  </Alert> */}
                 </VStack>
               ) : (
                 <Button
