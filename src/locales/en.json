@@ -63,7 +63,9 @@
     "strangerCta": "Don't have a code? RSVP as a stranger!",
     "lockedMessage": "Contact David and Rachel to make any changes to your RSVP.",
     "submitSuccessTitle": "Thanks for your submission!",
-    "submitSuccessBody": "We received your RSVP. If you need to change anything, please contact David and Rachel."
+    "submitSuccessBody": "We received your RSVP. If you need to change anything, please contact David and Rachel.",
+    "alreadyRespondedTitle": "We already have your RSVP",
+    "alreadyRespondedBody": "Our records show you've responded. If you need to change anything, please contact David and Rachel."
   },
   "weddingParty": {
     "title": "Wedding Party",

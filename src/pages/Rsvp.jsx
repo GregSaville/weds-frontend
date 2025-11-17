@@ -44,6 +44,7 @@ export default function Rsvp() {
   const [isStrangerMode, setIsStrangerMode] = useState(false);
   const [sessionLockedId, setSessionLockedId] = useState("");
   const [justSubmitted, setJustSubmitted] = useState(false);
+  const [hasResponded, setHasResponded] = useState(false);
 
   const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
   const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || `${publicBase}/rsvp`;
@@ -100,10 +101,18 @@ export default function Rsvp() {
         setGuests([]);
         setInviteReady(true);
         setIsStrangerMode(false);
+        setHasResponded(!!data.hasResponded);
+        if (data.hasResponded) {
+          const lockToken = data.sessionId || data.guestId || trimmed;
+          if (lockToken) {
+            setSessionLockedId(String(lockToken));
+          }
+        }
       } catch (err) {
         console.error("Failed to load RSVP meta", err);
         setGuestId("");
         setAllowedPartySize(null);
+        setHasResponded(false);
         showToast(t("rsvp.toastMetaFail"), "error");
       } finally {
         setMetaLoading(false);
@@ -120,6 +129,8 @@ export default function Rsvp() {
       setInviteReady(false);
       setIsStrangerMode(false);
       setMetaLoading(false);
+      setHasResponded(false);
+      setJustSubmitted(false);
       return;
     }
 
@@ -267,6 +278,7 @@ export default function Rsvp() {
     }
     setInviteReady(false);
     setSearchParams({ token: trimmed });
+    setJustSubmitted(false);
   };
 
   const handleStrangerRsvp = () => {
@@ -277,6 +289,8 @@ export default function Rsvp() {
     setGuests([]);
     setInviteReady(true);
     setIsStrangerMode(true);
+    setHasResponded(false);
+    setJustSubmitted(false);
   };
 
   const loading = settingsLoading || metaLoading;
@@ -463,10 +477,14 @@ export default function Rsvp() {
 
             <Box my={2} h="1px" bg="blackAlpha.300" />
             <Box w={["100%","70%","60%"]} mx="auto">
-              {isSessionLocked ? (
+              {(isSessionLocked || hasResponded) ? (
                 <VStack spacing={3} align="stretch" textAlign="center">
-                  <Heading size="md">{t("rsvp.submitSuccessTitle")}</Heading>
-                  <Text color="gray.800">{t("rsvp.submitSuccessBody")}</Text>
+                  <Heading size="md">
+                    {hasResponded ? t("rsvp.alreadyRespondedTitle") : t("rsvp.submitSuccessTitle")}
+                  </Heading>
+                  <Text color="gray.800">
+                    {hasResponded ? t("rsvp.alreadyRespondedBody") : t("rsvp.submitSuccessBody")}
+                  </Text>
                   {justSubmitted && (
                     <Alert status="success" borderRadius="md" bg="green.50" color="gray.800" justifyContent="center">
                       {t("rsvp.toastSubmitted")}
@@ -481,7 +499,7 @@ export default function Rsvp() {
                   w="100%"
                   colorScheme="yellow"
                   type="submit"
-                  isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || isSessionLocked}
+                  isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || isSessionLocked || hasResponded}
                 >
                   {t("rsvp.submit")}
                 </Button>
