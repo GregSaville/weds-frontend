@@ -1,5 +1,5 @@
-import { Box, Flex, Heading, VStack, HStack, Input, Textarea, Button, ButtonGroup, Text, Spinner } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { Box, Flex, Heading, VStack, HStack, Input, Textarea, Button, ButtonGroup, Text, Spinner, Alert } from "@chakra-ui/react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import NavBar from "../componets/NavBar";
@@ -11,7 +11,7 @@ import TitleWithBrackets from "../componets/TitleWithBrackets";
 export default function Rsvp() {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [guestId, setGuestId] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -35,11 +35,18 @@ export default function Rsvp() {
 
   // Extra note for the couple (optional)
   const [notes, setNotes] = useState("");
+  const [tokenInput, setTokenInput] = useState(searchParams.get("token") || "");
   const [allowedPartySize, setAllowedPartySize] = useState(null);
   const [metaLoading, setMetaLoading] = useState(false);
+  const [settings, setSettings] = useState({ rsvpOpenToStrangers: true, rsvpClosed: false });
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [inviteReady, setInviteReady] = useState(false);
+  const [isStrangerMode, setIsStrangerMode] = useState(false);
 
   const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || "/api/public/rsvp";
   const metaBase = process.env.REACT_APP_RSVP_META_ENDPOINT || "/api/public/rsvp-meta";
+  const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
+  const publicSettingsEndpoint = process.env.REACT_APP_PUBLIC_SETTINGS_ENDPOINT || `${publicBase}/settings`;
 
   const addGuest = () => {
     const maxAdditional = allowedPartySize != null ? Math.max(allowedPartySize - 1, 0) : Infinity;
@@ -67,39 +74,88 @@ export default function Rsvp() {
     };
   };
 
+  const fetchRsvpMeta = useCallback(
+    async (token) => {
+      const trimmed = (token || "").trim();
+      if (!trimmed) {
+        setMetaLoading(false);
+        setInviteReady(false);
+        return;
+      }
+
+      setMetaLoading(true);
+      setInviteReady(false);
+      try {
+        const url = `${metaBase}/${encodeURIComponent(trimmed)}`;
+        const res = await axios.get(url);
+        const data = res.data || {};
+        const name = data.name || {};
+        setFirstName(name.firstName || "");
+        setLastName(name.lastName || "");
+        const allowed = Number(data.allowedPartySize);
+        setAllowedPartySize(!Number.isNaN(allowed) ? Math.max(allowed, 1) : null);
+        setGuestId(data.guestId || "");
+        setGuests([]);
+        setInviteReady(true);
+        setIsStrangerMode(false);
+      } catch (err) {
+        console.error("Failed to load RSVP meta", err);
+        setGuestId("");
+        setAllowedPartySize(null);
+        showToast(t("rsvp.toastMetaFail"), "error");
+      } finally {
+        setMetaLoading(false);
+      }
+    },
+    [metaBase, showToast, t]
+  );
+
   // Prepopulate from token meta
   useEffect(() => {
     const token = searchParams.get("token");
-    if (!token) {
-      setMetaLoading(false);
-      return;
-    }
+    setTokenInput(token || "");
+    fetchRsvpMeta(token);
+  }, [searchParams, fetchRsvpMeta]);
 
-    setMetaLoading(true);
-    setGuestId(token);
-    const url = `${metaBase}/${encodeURIComponent(token)}`;
-    axios
-      .get(url)
-      .then((res) => {
-        const data = res.data || {};
-        const name = data.name || {};
-        if (name.firstName) setFirstName(name.firstName);
-        if (name.lastName) setLastName(name.lastName);
-        const allowed = Number(data.allowedPartySize);
-        if (!Number.isNaN(allowed)) setAllowedPartySize(Math.max(allowed, 1));
-        // Do not prepopulate empty guest boxes; user can add up to the allowed amount
-      })
-      .catch((err) => {
-        console.error("Failed to load RSVP meta", err);
-        showToast(t("rsvp.toastMetaFail"), "error");
-      })
-      .finally(() => setMetaLoading(false));
-  }, [searchParams, metaBase, showToast, t]);
+  useEffect(() => {
+    const loadSettings = async () => {
+      setSettingsLoading(true);
+      try {
+        const res = await axios.get(publicSettingsEndpoint);
+        if (res.data) {
+          setSettings({
+            rsvpOpenToStrangers: !!res.data.rsvpOpenToStrangers,
+            rsvpClosed: !!res.data.rsvpClosed,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load RSVP settings", err);
+        showToast(t("rsvp.toastSettingsFail"), "error");
+      } finally {
+        setSettingsLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [publicSettingsEndpoint, showToast, t]);
+
+  const inviteOnly = !settings.rsvpOpenToStrangers;
+  const inviteRequiredAndMissing = !inviteReady;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!firstName || !lastName) {
       showToast(t("rsvp.toastNameRequired"), "error");
+      return;
+    }
+
+    if (settings.rsvpClosed) {
+      showToast(t("rsvp.toastClosed"), "error");
+      return;
+    }
+
+    if (inviteRequiredAndMissing) {
+      showToast(t("rsvp.toastInviteRequired"), "error");
       return;
     }
 
@@ -162,6 +218,28 @@ export default function Rsvp() {
     }
   };
 
+  const handleLoadInvite = () => {
+    const trimmed = (tokenInput || "").trim();
+    if (!trimmed) {
+      showToast(t("rsvp.toastInviteRequired"), "error");
+      return;
+    }
+    setInviteReady(false);
+    setSearchParams({ token: trimmed });
+  };
+
+  const handleStrangerRsvp = () => {
+    setSearchParams({});
+    setTokenInput("");
+    setGuestId("");
+    setAllowedPartySize(2); // 1 main + up to 7 additional guests
+    setGuests([]);
+    setInviteReady(true);
+    setIsStrangerMode(true);
+  };
+
+  const loading = settingsLoading || metaLoading;
+
   return (
     <Box minH="100vh" bg="transparent">
       <NavBar />
@@ -169,14 +247,75 @@ export default function Rsvp() {
         <TitleWithBrackets fontSize={["3xl", "4xl", "5xl"]}>{t("home.nav.rsvp")}</TitleWithBrackets>
         <LanguageSlider />
 
-        {metaLoading ? (
+        {loading ? (
           <Flex direction="column" align="center" justify="center" mt={12} mb={16} gap={3}>
             <Spinner thickness="4px" speed="0.7s" color="yellow.400" size="lg" />
             <Text color="gray.700">{t("rsvp.loadingMeta")}</Text>
           </Flex>
+        ) : settings.rsvpClosed ? (
+          <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
+            <Text fontSize="lg" textAlign="center" color="gray.800">
+              {t("rsvp.closedEnded")}
+            </Text>
+          </Box>
+        ) : inviteRequiredAndMissing ? (
+          <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
+            <VStack spacing={3} align="stretch" color="black">
+              <Heading size="md">{t("rsvp.inviteOnlyTitle")}</Heading>
+              <Text fontSize="md" color="gray.800">
+                {t("rsvp.inviteOnlyDescription")}
+              </Text>
+              <HStack spacing={3}>
+                <Input
+                  placeholder={t("rsvp.inviteCodePlaceholder")}
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  bg="white"
+                />
+                <Button colorScheme="yellow" onClick={handleLoadInvite} isDisabled={!tokenInput.trim()}>
+                  {t("rsvp.inviteCodeLoad")}
+                </Button>
+              </HStack>
+              <Text fontSize="sm" color="orange.700">
+                {t("rsvp.inviteOnlyReminder")}
+              </Text>
+              {settings.rsvpOpenToStrangers && (
+                <Button onClick={handleStrangerRsvp} variant="link" size="sm" colorScheme="yellow">
+                  {t("rsvp.strangerCta")}
+                </Button>
+              )}
+            </VStack>
+          </Box>
         ) : (
         <Box as="form" onSubmit={handleSubmit} mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
           <VStack spacing={4} align="stretch" color="black">
+            {!(isStrangerMode || inviteReady) && (
+              <Box p={3} borderWidth="1px" borderRadius="md" bg="white">
+                <Heading size="sm" mb={1}>
+                  {t("rsvp.inviteOnlyTitle")}
+                </Heading>
+                <Text fontSize="sm" color="gray.700">
+                  {t("rsvp.inviteOnlyDescription")}
+                </Text>
+                <HStack mt={3} spacing={3}>
+                  <Input
+                    placeholder={t("rsvp.inviteCodePlaceholder")}
+                    value={tokenInput}
+                    onChange={(e) => setTokenInput(e.target.value)}
+                    bg="white"
+                  />
+                  <Button colorScheme="yellow" onClick={handleLoadInvite} isDisabled={!tokenInput.trim()}>
+                    {t("rsvp.inviteCodeLoad")}
+                  </Button>
+                </HStack>
+                {settings.rsvpOpenToStrangers && (
+                  <Button onClick={handleStrangerRsvp} variant="link" size="sm" mt={2} colorScheme="yellow">
+                    {t("rsvp.strangerCta")}
+                  </Button>
+                )}
+              </Box>
+            )}
+
             <HStack>
               <Input placeholder={t("rsvp.firstName")} value={firstName} onChange={(e) => setFirstName(e.target.value)} isRequired />
               <Input placeholder={t("rsvp.lastName")} value={lastName} onChange={(e) => setLastName(e.target.value)} isRequired />
@@ -283,7 +422,14 @@ export default function Rsvp() {
 
             <Box my={2} h="1px" bg="blackAlpha.300" />
             <Box w={["100%","70%","60%"]} mx="auto">
-              <Button w="100%" colorScheme="yellow" type="submit">{t("rsvp.submit")}</Button>
+              <Button
+                w="100%"
+                colorScheme="yellow"
+                type="submit"
+                isDisabled={settings.rsvpClosed || inviteRequiredAndMissing}
+              >
+                {t("rsvp.submit")}
+              </Button>
             </Box>
           </VStack>
         </Box>

@@ -1,5 +1,4 @@
 import {
-  Badge,
   Box,
   Button,
   Dialog,
@@ -11,56 +10,59 @@ import {
   Spacer,
   Stack,
   Separator,
-  Table,
-  Tag,
-  TagLabel,
   Text,
   Textarea,
   VStack,
   useDisclosure,
   FieldRoot as FormControl,
   FieldLabel as FormLabel,
+  Switch,
+  IconButton,
+  Drawer,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkAuth, clearAuth, getAuthHeader } from "../utils/auth";
 import axios from "axios";
 import { useToast } from "../componets/ToastProvider";
+import GuestPanel from "../componets/admin/GuestPanel";
+import RsvpPanel from "../componets/admin/RsvpPanel";
+import ExpectedPanel from "../componets/admin/ExpectedPanel";
+import StatusTag from "../componets/admin/StatusTag";
 
-const RSVP_STATUS_META = {
-  ACCEPTED: { label: "Accepted", scheme: "green" },
-  DECLINED: { label: "Declined", scheme: "red" },
-  WAITLISTED: { label: "Waitlisted", scheme: "purple" },
-  PENDING: { label: "Pending", scheme: "gray" },
-};
-
-const RSVP_STATUS_ORDER = ["ACCEPTED", "PENDING", "DECLINED", "WAITLISTED"];
+const SettingsGlyph = (props) => (
+  <Box as="span" display="inline-flex" {...props}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M19.4 15a2 2 0 0 0 .4 2.2l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-2.2-.4 2 2 0 0 0-1.2 1.8V22a2 2 0 0 1-4 0v-.2a2 2 0 0 0-1.2-1.8 2 2 0 0 0-2.2.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 5 15a2 2 0 0 0-1.8-1.2H3a2 2 0 0 1 0-4h.2A2 2 0 0 0 5 8.6a2 2 0 0 0-.4-2.2l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 9.6 4a2 2 0 0 0 1.2-1.8V2a2 2 0 0 1 4 0v.2A2 2 0 0 0 16 4a2 2 0 0 0 2.2-.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 19.4 9c.9 0 1.7.5 1.8 1.4V11a2 2 0 0 1 0 2v.2a2 2 0 0 0-1.8 1.8Z" />
+    </svg>
+  </Box>
+);
 
 const getStatusMeta = (status) => {
   if (!status) return { label: "Pending", scheme: "gray" };
   const key = String(status).toUpperCase();
-  if (RSVP_STATUS_META[key]) return RSVP_STATUS_META[key];
-  return { label: status, scheme: "blue" };
+  const map = {
+    ACCEPTED: { label: "Accepted", scheme: "green" },
+    DECLINED: { label: "Declined", scheme: "red" },
+    WAITLISTED: { label: "Waitlisted", scheme: "purple" },
+    PENDING: { label: "Pending", scheme: "gray" },
+  };
+  return map[key] || { label: status, scheme: "blue" };
 };
 
-const StatusTag = ({ status, size = "sm" }) => {
-  const meta = getStatusMeta(status);
-  return (
-    <Tag
-      size={size}
-      colorScheme={meta.scheme}
-      variant="subtle"
-      borderRadius="full"
-      px={3}
-      py={1}
-      textTransform="uppercase"
-      letterSpacing="wide"
-      fontWeight="600"
-    >
-      <TagLabel>{meta.label}</TagLabel>
-    </Tag>
-  );
-};
+const RSVP_STATUS_ORDER = ["ACCEPTED", "PENDING", "DECLINED", "WAITLISTED"];
 
 const InfoStat = ({ label, value }) => {
   const displayValue = value === undefined || value === null || value === "" ? "-" : value;
@@ -92,11 +94,15 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { isOpen: isRsvpModalOpen, onOpen: openRsvpModal, onClose: closeRsvpModal } = useDisclosure();
+  const { isOpen: isSettingsOpen, onOpen: openSettings, onClose: closeSettings } = useDisclosure();
   const [isEditingRsvp, setIsEditingRsvp] = useState(false);
 
   const [expected, setExpected] = useState([]);
   const [expectedLoading, setExpectedLoading] = useState(false);
   const [turnoutCount, setTurnoutCount] = useState(0);
+  const [settings, setSettings] = useState({ rsvpOpenToStrangers: false, rsvpClosed: false });
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
 
   const totals = useMemo(() => {
     const total = invitees.length;
@@ -106,25 +112,11 @@ export default function AdminDashboard() {
     return { total, rsvpsCount, expectedCount };
   }, [invitees, rsvps, expected, turnoutCount]);
 
-  useEffect(() => {
-    const bootstrap = async () => {
-      const authorized = await checkAuth();
-      if (!authorized) {
-        showToast("Unauthorized - redirecting to login", "error");
-        navigate("/admin/login");
-        return;
-      }
-
-      await reloadInvitees();
-      setLoading(false);
-    };
-
-    bootstrap();
-  }, [navigate, showToast]);
-
   const adminBase = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
+  const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
+  const publicSettingsEndpoint = process.env.REACT_APP_PUBLIC_SETTINGS_ENDPOINT || `${publicBase}/settings`;
 
-  const reloadInvitees = async () => {
+  const reloadInvitees = useCallback(async () => {
     try {
       const res = await axios.get(`${adminBase}/invitees`, {
         headers: { Authorization: getAuthHeader() },
@@ -133,7 +125,7 @@ export default function AdminDashboard() {
     } catch (err) {
       showToast(`Error fetching invitees: ${err.response?.data?.message || err.message}`, "error");
     }
-  };
+  }, [adminBase, showToast]);
 
   // Load RSVPs when the RSVPs tab is selected
   useEffect(() => {
@@ -153,7 +145,7 @@ export default function AdminDashboard() {
       }
     };
     loadRsvps();
-  }, [view, showToast]);
+  }, [view, showToast, adminBase]);
 
   // Load Expected Turnout when selected
   useEffect(() => {
@@ -182,7 +174,61 @@ export default function AdminDashboard() {
       }
     };
     loadExpected();
-  }, [view, showToast]);
+  }, [view, showToast, adminBase]);
+
+  const loadSettings = useCallback(async () => {
+    setSettingsLoading(true);
+    try {
+      const res = await axios.get(publicSettingsEndpoint);
+      if (res.data) {
+        setSettings({
+          rsvpOpenToStrangers: !!res.data.rsvpOpenToStrangers,
+          rsvpClosed: !!res.data.rsvpClosed,
+        });
+      }
+    } catch (err) {
+      showToast(`Error fetching settings: ${err.response?.data?.message || err.message}`, "error");
+    } finally {
+      setSettingsLoading(false);
+    }
+  }, [publicSettingsEndpoint, showToast]);
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      const authorized = await checkAuth();
+      if (!authorized) {
+        showToast("Unauthorized - redirecting to login", "error");
+        navigate("/admin/login");
+        return;
+      }
+
+      await reloadInvitees();
+      await loadSettings();
+      setLoading(false);
+    };
+
+    bootstrap();
+  }, [navigate, showToast, reloadInvitees, loadSettings]);
+
+  const saveSettings = async (nextSettings) => {
+    setSettingsSaving(true);
+    try {
+      const res = await axios.post(`${adminBase}/settings`, nextSettings, {
+        headers: { Authorization: getAuthHeader(), "Content-Type": "application/json" },
+      });
+      setSettings(res.data || nextSettings);
+      showToast("Settings updated", "success");
+    } catch (err) {
+      showToast(`Failed to update settings: ${err.response?.data?.message || err.message}`, "error");
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const toggleSetting = (key) => {
+    const nextSettings = { ...settings, [key]: !settings[key] };
+    saveSettings(nextSettings);
+  };
 
   const fmt = (ts) => {
     if (!ts) return "-";
@@ -215,9 +261,22 @@ export default function AdminDashboard() {
     navigate("/admin/login");
   };
 
+  const copyInviteCode = async (code) => {
+    if (!code) {
+      showToast("No invite code available", "info");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(String(code));
+      showToast("Invite code copied", "success");
+    } catch (err) {
+      showToast("Could not copy invite code", "error");
+    }
+  };
+
   const inviteGuest = async (guest) => {
     const origin = window.location?.origin || '';
-    const link = `${origin}/rsvp?token=${guest.id}`;
+    const link = `${origin}/rsvp?token=${guest.guestCode}`;
     try { await navigator.clipboard.writeText(link); } catch {}
     showToast(`Invite link:\n${link}\n(click to dismiss)`, "info", 0);
   };
@@ -258,12 +317,34 @@ export default function AdminDashboard() {
 
   const deleteInvitee = async (guest) => {
     if (!guest?.id) return;
+    const confirmed = window.confirm(`Are you sure you want to remove ${guest.firstName || ""} ${guest.lastName || ""} from the guest list?`);
+    if (!confirmed) return;
     try {
       await axios.delete(`${adminBase}/invitees/${guest.id}`, {
         headers: { Authorization: getAuthHeader() },
       });
       showToast("Guest deleted", "info");
       setInvitees((prev) => prev.filter((g) => g.id !== guest.id));
+    } catch (err) {
+      showToast(`Delete failed: ${err.response?.data?.message || err.message}`, "error");
+    }
+  };
+
+  const deleteRsvp = async (rsvp) => {
+    if (!rsvp?.id) return;
+    const name = rsvp.name ? `${rsvp.name.firstName || ""} ${rsvp.name.lastName || ""}`.trim() : "this RSVP";
+    const confirmed = window.confirm(`Delete ${name}? This cannot be undone.`);
+    if (!confirmed) return;
+    try {
+      await axios.delete(`${adminBase}/rsvps/${rsvp.id}`, {
+        headers: { Authorization: getAuthHeader() },
+      });
+      showToast("RSVP deleted", "info");
+      setRsvps((prev) => prev.filter((r) => r.id !== rsvp.id));
+      if (selectedRsvp?.id === rsvp.id) {
+        setSelectedRsvp(null);
+        closeRsvpModal();
+      }
     } catch (err) {
       showToast(`Delete failed: ${err.response?.data?.message || err.message}`, "error");
     }
@@ -383,6 +464,14 @@ export default function AdminDashboard() {
           Admin Dashboard
         </Heading>
         <Spacer />
+        <IconButton
+          aria-label="Open settings"
+          icon={<SettingsGlyph />}
+          variant="outline"
+          colorScheme="yellow"
+          onClick={openSettings}
+          isDisabled={settingsLoading}
+        />
         <Button colorScheme="red" variant="outline" onClick={handleLogout}>
           Logout
         </Button>
@@ -453,175 +542,113 @@ export default function AdminDashboard() {
         p={4}
       >
         {view === "guests" && (
-          <>
-            <HStack mb={4}>
-              <Heading size="md" color="teal.700">Guest List</Heading>
-              <Spacer />
-              <Button size="sm" colorScheme="yellow" onClick={() => setInviteFormOpen((v) => !v)}>
-                {inviteFormOpen ? 'Close' : 'Invite New Guest'}
-              </Button>
-            </HStack>
-
-            {inviteFormOpen && (
-              <Box mb={4} p={3} borderWidth="1px" borderRadius="md" bg="whiteAlpha.800">
-                <HStack spacing={3} mb={2} align="flex-end">
-                  <Input placeholder="First Name" value={inviteFirst} onChange={(e) => setInviteFirst(e.target.value)} />
-                  <Input placeholder="Last Name" value={inviteLast} onChange={(e) => setInviteLast(e.target.value)} />
-                  <Box>
-                    <Text fontSize="sm" color="gray.600" mb={1}>Party Size</Text>
-                    <Input type="number" min={1} placeholder="Party Size" value={inviteSize} onChange={(e) => setInviteSize(e.target.value)} w="140px" />
-                  </Box>
-                  <Box>
-                    <HStack>
-                      <input type="checkbox" checked={inviteForce} onChange={(e) => setInviteForce(e.target.checked)} />
-                      <Text>Force</Text>
-                    </HStack>
-                    <Text fontSize="xs" color="gray.600">If two guests have the same name, allow it.</Text>
-                  </Box>
-                  <Button colorScheme="yellow" onClick={inviteNewGuest} isLoading={inviteSubmitting}>Create Invite</Button>
-                </HStack>
-                <Text fontSize="sm" color="gray.600">Creates a new invite and returns a shareable RSVP link.</Text>
-              </Box>
-            )}
-            <Table.Root variant="outline" size="sm">
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeader>First Name</Table.ColumnHeader>
-                  <Table.ColumnHeader>Last Name</Table.ColumnHeader>
-                  <Table.ColumnHeader>Allowed Party Size</Table.ColumnHeader>
-                  <Table.ColumnHeader>RSVP</Table.ColumnHeader>
-                  <Table.ColumnHeader>Actions</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {invitees.map((g) => (
-                  <Table.Row key={g.id}>
-                    <Table.Cell>{g.firstName}</Table.Cell>
-                    <Table.Cell>{g.lastName}</Table.Cell>
-                    <Table.Cell>{g.allowedPartySize}</Table.Cell>
-                    <Table.Cell>
-                      {g.rsvpId != null ? (
-                        <Badge
-                          colorScheme="green"
-                          as="button"
-                          onClick={() => openRsvpFromGuest(g.rsvpId)}
-                          cursor="pointer"
-                          title="View RSVP details"
-                        >
-                          Responded
-                        </Badge>
-                      ) : (
-                        <Badge colorScheme="gray">Pending</Badge>
-                      )}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <HStack>
-                        <Button size="sm" colorScheme="yellow" variant="solid" onClick={() => inviteGuest(g)}>
-                          Invite Link
-                        </Button>
-                        <Button size="sm" colorScheme="red" variant="outline" onClick={() => deleteInvitee(g)}>
-                          Delete
-                        </Button>
-                      </HStack>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
-          </>
+          <GuestPanel
+            invitees={invitees}
+            inviteFormOpen={inviteFormOpen}
+            setInviteFormOpen={setInviteFormOpen}
+            inviteFirst={inviteFirst}
+            inviteLast={inviteLast}
+            inviteSize={inviteSize}
+            inviteForce={inviteForce}
+            setInviteFirst={setInviteFirst}
+            setInviteLast={setInviteLast}
+            setInviteSize={setInviteSize}
+            setInviteForce={setInviteForce}
+            inviteSubmitting={inviteSubmitting}
+            inviteNewGuest={inviteNewGuest}
+            inviteGuest={inviteGuest}
+            copyInviteCode={copyInviteCode}
+            openRsvpFromGuest={openRsvpFromGuest}
+            deleteInvitee={deleteInvitee}
+          />
         )}
 
         {view === "rsvps" && (
-          <>
-            <Heading size="md" mb={4} color="teal.700">
-              RSVPs
-            </Heading>
-            <Table.Root variant="outline" size="sm">
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeader>Name</Table.ColumnHeader>
-                  <Table.ColumnHeader>Status</Table.ColumnHeader>
-                  <Table.ColumnHeader>Message</Table.ColumnHeader>
-                  <Table.ColumnHeader>Created</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {rsvpsLoading ? (
-                  <Table.Row>
-                    <Table.Cell colSpan={4}>Loading RSVPs...</Table.Cell>
-                  </Table.Row>
-                ) : (
-                  rsvps.map((r) => (
-                    <Table.Row
-                      key={r.id}
-                      onClick={() => viewRsvpDetail(r.id)}
-                      cursor="pointer"
-                    >
-                      <Table.Cell>{r.name ? `${r.name.firstName || ""} ${r.name.lastName || ""}`.trim() : "-"}</Table.Cell>
-                      <Table.Cell>
-                        <StatusTag status={r.status} />
-                      </Table.Cell>
-                      <Table.Cell>
-                        {r.message
-                          ? `${String(r.message).slice(0, 48)}${
-                              String(r.message).length > 48 ? "..." : ""
-                            }`
-                          : "-"}
-                      </Table.Cell>
-                      <Table.Cell>{fmt(r.createdAt)}</Table.Cell>
-                    </Table.Row>
-                  ))
-                )}
-              </Table.Body>
-            </Table.Root>
-          </>
+          <RsvpPanel
+            rsvps={rsvps}
+            rsvpsLoading={rsvpsLoading}
+            viewRsvpDetail={viewRsvpDetail}
+            fmt={fmt}
+            deleteRsvp={deleteRsvp}
+          />
         )}
 
         {view === "expected" && (
-          <>
-            <Heading size="md" mb={4} color="teal.700">
-              Expected Turnout ({totals.expectedCount})
-            </Heading>
-            <Table.Root variant="outline" size="sm">
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeader>Name</Table.ColumnHeader>
-                  <Table.ColumnHeader>Type</Table.ColumnHeader>
-                  <Table.ColumnHeader>Accommodations / Message</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {expectedLoading ? (
-                  <Table.Row>
-                    <Table.Cell colSpan={3}>Loading...</Table.Cell>
-                  </Table.Row>
-                ) : (
-                  expected.flatMap((a) => {
-                    const rows = [];
-                    const mainName = a?.guestName ? `${a.guestName.firstName || ''} ${a.guestName.lastName || ''}`.trim() : '-';
-                    rows.push({ name: mainName, type: 'Main', note: a?.message || '-' });
-                    if (Array.isArray(a.additionalGuests)) {
-                      a.additionalGuests.forEach((ag) => {
-                        const gname = `${ag.firstName || ''} ${ag.lastName || ''}`.trim();
-                        rows.push({ name: gname, type: 'Guest', note: ag.specialAccommodations || '-' });
-                      });
-                    }
-                    return rows;
-                  }).map((row, idx) => (
-                    <Table.Row key={idx}>
-                      <Table.Cell>{row.name}</Table.Cell>
-                      <Table.Cell>
-                        <Badge colorScheme={row.type === 'Main' ? 'blue' : 'purple'}>{row.type}</Badge>
-                      </Table.Cell>
-                      <Table.Cell>{row.note}</Table.Cell>
-                    </Table.Row>
-                  ))
-                )}
-              </Table.Body>
-            </Table.Root>
-          </>
+          <ExpectedPanel expected={expected} expectedLoading={expectedLoading} totals={totals} />
         )}
       </Box>
+
+      <Drawer.Root
+        open={isSettingsOpen}
+        placement="right"
+        onOpenChange={(open) => (open ? openSettings() : closeSettings())}
+      >
+        <Drawer.Backdrop bg="blackAlpha.500" />
+        <Drawer.Positioner>
+          <Drawer.Content>
+            <Drawer.CloseTrigger />
+            <Drawer.Header borderBottomWidth="1px">Settings</Drawer.Header>
+            <Drawer.Body>
+            {settingsLoading ? (
+              <Text color="gray.600">Loading settings...</Text>
+            ) : (
+              <VStack align="stretch" spacing={4}>
+                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+                  <HStack justify="space-between" align="center">
+                    <Box>
+                      <Heading size="sm" color="teal.700">
+                        Close RSVPs
+                      </Heading>
+                      <Text fontSize="sm" color="gray.600">
+                        Prevent all new submissions.
+                      </Text>
+                    </Box>
+                    <Switch
+                      size="lg"
+                      isChecked={settings.rsvpClosed}
+                      onChange={() => toggleSetting("rsvpClosed")}
+                      isDisabled={settingsSaving}
+                      colorScheme="yellow"
+                    />
+                  </HStack>
+                  <Text mt={2} fontSize="sm" color="gray.600">
+                    Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
+                  </Text>
+                </Box>
+
+                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+                  <HStack justify="space-between" align="center">
+                    <Box>
+                      <Heading size="sm" color="teal.700">
+                        Allow Strangers
+                      </Heading>
+                      <Text fontSize="sm" color="gray.600">
+                        Let anyone RSVP without an invite token.
+                      </Text>
+                    </Box>
+                    <Switch
+                      size="lg"
+                      isChecked={settings.rsvpOpenToStrangers}
+                      onChange={() => toggleSetting("rsvpOpenToStrangers")}
+                      isDisabled={settingsSaving}
+                      colorScheme="yellow"
+                    />
+                  </HStack>
+                  <Text mt={2} fontSize="sm" color="gray.600">
+                    Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
+                  </Text>
+                </Box>
+              </VStack>
+            )}
+            </Drawer.Body>
+            <Drawer.Footer>
+              <Button onClick={closeSettings} variant="outline">
+                Close
+              </Button>
+            </Drawer.Footer>
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Drawer.Root>
 
       <Dialog.Root
         open={isRsvpModalOpen}

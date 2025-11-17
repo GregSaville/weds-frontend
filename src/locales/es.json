@@ -49,7 +49,18 @@
     "toastUnexpected": "Respuesta inesperada: {{status}}",
     "toastFailed": "Error al enviar: {{message}}",
     "toastMetaFail": "No se pudo cargar la invitación para el token.",
-    "loadingMeta": "Cargando los detalles de tu RSVP..."
+    "loadingMeta": "Cargando los detalles de tu RSVP...",
+    "toastSettingsFail": "No se pudieron cargar los ajustes de RSVP.",
+    "toastInviteRequired": "Ingresa tu codigo de invitacion para continuar.",
+    "toastClosed": "Los RSVP estan cerrados actualmente.",
+    "closedMessage": "Los RSVP estan cerrados actualmente.",
+    "inviteOnlyTitle": "¿Tienes un codigo de invitacion?",
+    "inviteOnlyDescription": "Los RSVP son solo con invitacion. Ingresa tu codigo para cargar tus datos y editar tu RSVP.",
+    "inviteCodePlaceholder": "Ingresa el codigo de invitacion",
+    "inviteCodeLoad": "Cargar invitacion",
+    "inviteOnlyReminder": "Carga tu codigo de invitacion para habilitar el envio.",
+    "closedEnded": "Lo sentimos, el periodo para confirmar asistencia ha finalizado.",
+    "strangerCta": "¿No tienes codigo? Confirma como invitado externo."
   },
   "weddingParty": {
     "title": "Corte Nupcial",

@@ -49,7 +49,18 @@
     "toastUnexpected": "Unexpected response: {{status}}",
     "toastFailed": "Submission failed: {{message}}",
     "toastMetaFail": "Could not load RSVP details for token.",
-    "loadingMeta": "Loading your RSVP details..."
+    "toastSettingsFail": "Could not load RSVP settings.",
+    "toastInviteRequired": "Enter your invite code to continue.",
+    "toastClosed": "RSVPs are currently closed.",
+    "loadingMeta": "Loading your RSVP details...",
+    "closedMessage": "RSVPs are currently closed.",
+    "closedEnded": "Sorry, the period to RSVP has ended.",
+    "inviteOnlyTitle": "Have an invite code?",
+    "inviteOnlyDescription": "RSVPs are invite-only right now. Enter your code to load your details and submit your RSVP.",
+    "inviteCodePlaceholder": "Enter invite code",
+    "inviteCodeLoad": "Load invite",
+    "inviteOnlyReminder": "Load your invite code to enable submitting.",
+    "strangerCta": "Don't have a code? RSVP as a stranger!"
   },
   "weddingParty": {
     "title": "Wedding Party",
@@ -61,7 +72,7 @@
         "relation": "Parents of the Bride"
       },
       {
-        "name": "Joel and Elisa Hidalgo",
+        "name": "Joel and Elisa Hidalgo\n",
         "role": "-",
         "relation": "Parents of the Groom"
       },
