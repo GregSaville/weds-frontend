@@ -43,9 +43,9 @@ export default function Rsvp() {
   const [inviteReady, setInviteReady] = useState(false);
   const [isStrangerMode, setIsStrangerMode] = useState(false);
 
-  const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || "/api/public/rsvp";
-  const metaBase = process.env.REACT_APP_RSVP_META_ENDPOINT || "/api/public/rsvp-meta";
   const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
+  const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || `${publicBase}/rsvp`;
+  const metaBase = process.env.REACT_APP_RSVP_META_ENDPOINT || `${publicBase}/rsvp-meta`;
   const publicSettingsEndpoint = process.env.REACT_APP_PUBLIC_SETTINGS_ENDPOINT || `${publicBase}/settings`;
 
   const addGuest = () => {
@@ -79,7 +79,6 @@ export default function Rsvp() {
       const trimmed = (token || "").trim();
       if (!trimmed) {
         setMetaLoading(false);
-        setInviteReady(false);
         return;
       }
 
@@ -112,14 +111,16 @@ export default function Rsvp() {
 
   // Prepopulate from token meta
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
-      setTokenInput(token);
-      fetchRsvpMeta(token);
-    } else {
-      setTokenInput("");
+    const tokenFromParams = (searchParams.get("token") || "").trim();
+    setTokenInput(tokenFromParams);
+    if (!tokenFromParams) {
       setInviteReady(false);
+      setIsStrangerMode(false);
+      setMetaLoading(false);
+      return;
     }
+
+    fetchRsvpMeta(tokenFromParams);
   }, [searchParams, fetchRsvpMeta]);
 
   useEffect(() => {
