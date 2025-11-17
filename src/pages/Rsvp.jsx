@@ -151,8 +151,10 @@ export default function Rsvp() {
     // If a session id already exists, lock the form to prevent duplicate submissions.
     try {
       const stored = localStorage.getItem(SESSION_STORAGE_KEY);
-      if (stored) {
+      if (typeof stored === "string" && stored.trim()) {
         setSessionLockedId(stored);
+      } else {
+        setSessionLockedId("");
       }
     } catch (err) {
       console.error("Failed to read RSVP session id from storage", err);
@@ -229,12 +231,13 @@ export default function Rsvp() {
       if (res.status >= 200 && res.status < 300) {
         showToast(t("rsvp.toastSubmitted"), "success");
         const generatedSessionId =
-          res.data?.sessionId ||
+          (typeof res.data?.sessionId === "string" && res.data.sessionId.trim()) ||
           (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" && crypto.randomUUID()) ||
           `rsvp-${Date.now()}`;
         try {
-          localStorage.setItem(SESSION_STORAGE_KEY, generatedSessionId);
-          setSessionLockedId(generatedSessionId);
+          const safeId = String(generatedSessionId);
+          localStorage.setItem(SESSION_STORAGE_KEY, safeId);
+          setSessionLockedId(safeId);
         } catch (storageErr) {
           console.error("Failed to persist RSVP session id", storageErr);
         }
@@ -451,7 +454,7 @@ export default function Rsvp() {
             )}
 
             <Box my={2} h="1px" bg="blackAlpha.300" />
-            {sessionLockedId && (
+            {typeof sessionLockedId === "string" && sessionLockedId && (
               <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800">
                 {t("rsvp.lockedMessage")}
               </Alert>
@@ -461,7 +464,11 @@ export default function Rsvp() {
                 w="100%"
                 colorScheme="yellow"
                 type="submit"
-                isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || !!sessionLockedId}
+                isDisabled={
+                  settings.rsvpClosed ||
+                  inviteRequiredAndMissing ||
+                  (typeof sessionLockedId === "string" && sessionLockedId.trim())
+                }
               >
                 {t("rsvp.submit")}
               </Button>
