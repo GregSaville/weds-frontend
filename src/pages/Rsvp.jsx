@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, VStack, HStack, Input, Textarea, Button, ButtonGroup, Text, Spinner, Alert } from "@chakra-ui/react";
+import { Box, Flex, Heading, VStack, HStack, Input, Textarea, Button, ButtonGroup, Text, Spinner } from "@chakra-ui/react";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
@@ -327,13 +327,13 @@ export default function Rsvp() {
                 {hasResponded ? t("rsvp.alreadyRespondedBody") : t("rsvp.submitSuccessBody")}
               </Text>
               {justSubmitted && (
-                <Alert status="success" borderRadius="md" bg="green.50" color="gray.800" justifyContent="center">
+                <Box borderWidth="1px" borderRadius="md" bg="green.50" color="gray.800" p={3}>
                   {t("rsvp.toastSubmitted")}
-                </Alert>
+                </Box>
               )}
-              <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800" justifyContent="center">
+              <Box borderWidth="1px" borderRadius="md" bg="yellow.50" color="gray.800" p={3}>
                 {t("rsvp.lockedMessage")}
-              </Alert>
+              </Box>
             </VStack>
           </Box>
         ) : inviteRequiredAndMissing ? (
