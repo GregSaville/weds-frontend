@@ -176,6 +176,7 @@ export default function Rsvp() {
   const inviteOnly = !settings.rsvpOpenToStrangers;
   const inviteRequiredAndMissing = !inviteReady;
   const isSessionLocked = typeof sessionLockedId === "string" && sessionLockedId.trim().length > 0;
+  const showLockedNotice = isSessionLocked || hasResponded;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -313,6 +314,25 @@ export default function Rsvp() {
               {t("rsvp.closedEnded")}
             </Text>
           </Box>
+        ) : showLockedNotice ? (
+          <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
+            <VStack spacing={3} align="stretch" textAlign="center" color="black">
+              <Heading size="md">
+                {hasResponded ? t("rsvp.alreadyRespondedTitle") : t("rsvp.submitSuccessTitle")}
+              </Heading>
+              <Text color="gray.800">
+                {hasResponded ? t("rsvp.alreadyRespondedBody") : t("rsvp.submitSuccessBody")}
+              </Text>
+              {justSubmitted && (
+                <Alert status="success" borderRadius="md" bg="green.50" color="gray.800" justifyContent="center">
+                  {t("rsvp.toastSubmitted")}
+                </Alert>
+              )}
+              <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800" justifyContent="center">
+                {t("rsvp.lockedMessage")}
+              </Alert>
+            </VStack>
+          </Box>
         ) : inviteRequiredAndMissing ? (
           <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
             <VStack spacing={3} align="stretch" color="black">
@@ -342,34 +362,34 @@ export default function Rsvp() {
             </VStack>
           </Box>
         ) : (
-        <Box as="form" onSubmit={handleSubmit} mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
-          <VStack spacing={4} align="stretch" color="black">
-            {!(isStrangerMode || inviteReady) && (
-              <Box p={3} borderWidth="1px" borderRadius="md" bg="white">
-                <Heading size="sm" mb={1}>
-                  {t("rsvp.inviteOnlyTitle")}
-                </Heading>
-                <Text fontSize="sm" color="gray.700">
-                  {t("rsvp.inviteOnlyDescription")}
-                </Text>
-                <HStack mt={3} spacing={3}>
-                  <Input
-                    placeholder={t("rsvp.inviteCodePlaceholder")}
-                    value={tokenInput}
-                    onChange={(e) => setTokenInput(e.target.value)}
-                    bg="white"
-                  />
-                  <Button colorScheme="yellow" onClick={handleLoadInvite} isDisabled={!tokenInput.trim()}>
-                    {t("rsvp.inviteCodeLoad")}
-                  </Button>
-                </HStack>
-                {settings.rsvpOpenToStrangers && (
-                  <Button onClick={handleStrangerRsvp} variant="link" size="sm" mt={2} colorScheme="yellow">
-                    {t("rsvp.strangerCta")}
-                  </Button>
-                )}
-              </Box>
-            )}
+          <Box as="form" onSubmit={handleSubmit} mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
+            <VStack spacing={4} align="stretch" color="black">
+              {!(isStrangerMode || inviteReady) && (
+                <Box p={3} borderWidth="1px" borderRadius="md" bg="white">
+                  <Heading size="sm" mb={1}>
+                    {t("rsvp.inviteOnlyTitle")}
+                  </Heading>
+                  <Text fontSize="sm" color="gray.700">
+                    {t("rsvp.inviteOnlyDescription")}
+                  </Text>
+                  <HStack mt={3} spacing={3}>
+                    <Input
+                      placeholder={t("rsvp.inviteCodePlaceholder")}
+                      value={tokenInput}
+                      onChange={(e) => setTokenInput(e.target.value)}
+                      bg="white"
+                    />
+                    <Button colorScheme="yellow" onClick={handleLoadInvite} isDisabled={!tokenInput.trim()}>
+                      {t("rsvp.inviteCodeLoad")}
+                    </Button>
+                  </HStack>
+                  {settings.rsvpOpenToStrangers && (
+                    <Button onClick={handleStrangerRsvp} variant="link" size="sm" mt={2} colorScheme="yellow">
+                      {t("rsvp.strangerCta")}
+                    </Button>
+                  )}
+                </Box>
+              )}
 
             <HStack>
               <Input placeholder={t("rsvp.firstName")} value={firstName} onChange={(e) => setFirstName(e.target.value)} isRequired />
@@ -477,33 +497,14 @@ export default function Rsvp() {
 
             <Box my={2} h="1px" bg="blackAlpha.300" />
             <Box w={["100%","70%","60%"]} mx="auto">
-              {(isSessionLocked || hasResponded) ? (
-                <VStack spacing={3} align="stretch" textAlign="center">
-                  {/* <Heading size="md">
-                    {hasResponded ? t("rsvp.alreadyRespondedTitle") : t("rsvp.submitSuccessTitle")}
-                  </Heading>
-                  <Text color="gray.800">
-                    {hasResponded ? t("rsvp.alreadyRespondedBody") : t("rsvp.submitSuccessBody")}
-                  </Text>
-                  {justSubmitted && (
-                    <Alert status="success" borderRadius="md" bg="green.50" color="gray.800" justifyContent="center">
-                      {t("rsvp.toastSubmitted")}
-                    </Alert>
-                  )}
-                  <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800" justifyContent="center">
-                    {t("rsvp.lockedMessage")}
-                  </Alert> */}
-                </VStack>
-              ) : (
-                <Button
-                  w="100%"
-                  colorScheme="yellow"
-                  type="submit"
-                  isDisabled={settings.rsvpClosed || inviteRequiredAndMissing || isSessionLocked || hasResponded}
-                >
-                  {t("rsvp.submit")}
-                </Button>
-              )}
+              <Button
+                w="100%"
+                colorScheme="yellow"
+                type="submit"
+                isDisabled={settings.rsvpClosed || inviteRequiredAndMissing}
+              >
+                {t("rsvp.submit")}
+              </Button>
             </Box>
           </VStack>
         </Box>
