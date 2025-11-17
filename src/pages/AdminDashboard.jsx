@@ -656,6 +656,16 @@ export default function AdminDashboard() {
                   </Stack>
                 </HStack>
                 <Separator mt={3} />
+                {selectedRsvp && (selectedRsvp.approvalStatus || "PENDING_REVIEW").toUpperCase() === "PENDING_REVIEW" && (
+                  <Box mt={3} p={3} borderWidth="1px" borderRadius="md" bg="orange.50" borderColor="orange.200">
+                    <Text fontWeight="600" color="orange.800">
+                      Pending Review
+                    </Text>
+                    <Text fontSize="sm" color="orange.700">
+                      This RSVP is waiting for approval. Approve it to include in accepted counts.
+                    </Text>
+                  </Box>
+                )}
                 {rsvpDetailLoading ? (
                   <Flex minH="200px" align="center" justify="center">
                     <Text>Loading RSVP...</Text>
