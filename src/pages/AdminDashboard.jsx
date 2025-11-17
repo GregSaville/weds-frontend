@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Dialog,
   Flex,
   Heading,
   HStack,
@@ -97,9 +96,9 @@ export default function AdminDashboard() {
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { isOpen: isRsvpModalOpen, onOpen: openRsvpModal, onClose: closeRsvpModal } = useDisclosure();
   const { isOpen: isSettingsOpen, onOpen: openSettings, onClose: closeSettings } = useDisclosure();
   const [isEditingRsvp, setIsEditingRsvp] = useState(false);
+  const [activeRsvpId, setActiveRsvpId] = useState(null);
 
   const [expected, setExpected] = useState([]);
   const [expectedLoading, setExpectedLoading] = useState(false);
@@ -349,7 +348,8 @@ export default function AdminDashboard() {
       setRsvps((prev) => prev.filter((r) => r.id !== rsvp.id));
       if (selectedRsvp?.id === rsvp.id) {
         setSelectedRsvp(null);
-        closeRsvpModal();
+        setActiveRsvpId(null);
+        setIsEditingRsvp(false);
       }
     } catch (err) {
       showToast(`Delete failed: ${err.response?.data?.message || err.message}`, "error");
@@ -358,9 +358,9 @@ export default function AdminDashboard() {
 
   const viewRsvpDetail = (id) => {
     if (!id) return;
+    setActiveRsvpId(id);
     setSelectedRsvp(null);
     setIsEditingRsvp(false);
-    openRsvpModal();
     loadRsvpDetail(id);
   };
 
@@ -402,9 +402,15 @@ export default function AdminDashboard() {
     setSelectedRsvp((prev) => (prev ? { ...prev, status } : prev));
   };
 
-  const handleCloseRsvpModal = () => {
-    closeRsvpModal();
+  const updateStatusAndSave = async (status) => {
+    if (!status || !selectedRsvp?.id) return;
+    handleStatusChange(status);
+    await saveRsvpDetail({ status });
+  };
+
+  const handleClearRsvpSelection = () => {
     setSelectedRsvp(null);
+    setActiveRsvpId(null);
     setIsEditingRsvp(false);
   };
 
@@ -421,32 +427,39 @@ export default function AdminDashboard() {
   const totalGuestsResponding = selectedRsvp ? 1 + additionalGuestCount : 0;
 
   useEffect(() => {
-    if (view !== "rsvps" && isRsvpModalOpen) {
-      closeRsvpModal();
+    if (view !== "rsvps") {
       setSelectedRsvp(null);
+      setActiveRsvpId(null);
       setIsEditingRsvp(false);
     }
-  }, [view, isRsvpModalOpen, closeRsvpModal]);
+  }, [view]);
 
-  const saveRsvpDetail = async () => {
+  const saveRsvpDetail = async (overrides = {}) => {
     if (!selectedRsvp?.id) return;
     setRsvpSaving(true);
     try {
       const body = {
-        status: selectedRsvp.status,
-        email: selectedRsvp.email || null,
-        phone: selectedRsvp.phone || null,
-        address: selectedRsvp.address || null,
-        additionalGuests: selectedRsvp.additionalGuests || null,
-        message: selectedRsvp.message || null,
+        status: overrides.status ?? selectedRsvp.status,
+        email: overrides.email ?? selectedRsvp.email || null,
+        phone: overrides.phone ?? selectedRsvp.phone || null,
+        address: overrides.address ?? selectedRsvp.address || null,
+        additionalGuests: overrides.additionalGuests ?? selectedRsvp.additionalGuests || null,
+        message: overrides.message ?? selectedRsvp.message || null,
       };
       const res = await axios.post(`${adminBase}/rsvps/${selectedRsvp.id}`, body, {
         headers: { Authorization: getAuthHeader(), "Content-Type": "application/json" },
       });
       setSelectedRsvp(res.data);
+      setActiveRsvpId(res.data?.id ?? selectedRsvp.id);
       setIsEditingRsvp(false);
       // refresh list lightly
-      setRsvps((list) => list.map((r) => (r.id === res.data.id ? { ...r, status: res.data.status, message: res.data.message, name: res.data.name, createdAt: res.data.createdAt } : r)));
+      setRsvps((list) =>
+        list.map((r) =>
+          r.id === res.data.id
+            ? { ...r, status: res.data.status, message: res.data.message, name: res.data.name, createdAt: res.data.createdAt }
+            : r
+        )
+      );
       showToast("RSVP updated", "success");
     } catch (err) {
       showToast(`Update failed: ${err.response?.data?.message || err.message}`, "error");
@@ -573,163 +586,80 @@ export default function AdminDashboard() {
         )}
 
         {view === "rsvps" && (
-          <RsvpPanel
-            rsvps={rsvps}
-            rsvpsLoading={rsvpsLoading}
-            viewRsvpDetail={viewRsvpDetail}
-            fmt={fmt}
-            deleteRsvp={deleteRsvp}
-          />
-        )}
+          <Stack spacing={6}>
+            <RsvpPanel
+              rsvps={rsvps}
+              rsvpsLoading={rsvpsLoading}
+              viewRsvpDetail={viewRsvpDetail}
+              fmt={fmt}
+              deleteRsvp={deleteRsvp}
+              selectedRsvpId={activeRsvpId}
+            />
 
-        {view === "expected" && (
-          <ExpectedPanel expected={expected} expectedLoading={expectedLoading} totals={totals} />
-        )}
-      </Box>
-
-      <Drawer.Root
-        open={isSettingsOpen}
-        placement="right"
-        onOpenChange={(open) => (open ? openSettings() : closeSettings())}
-      >
-        <Drawer.Backdrop bg="blackAlpha.500" />
-        <Drawer.Positioner>
-          <Drawer.Content>
-            <Drawer.CloseTrigger />
-            <Drawer.Header borderBottomWidth="1px">
-              <HStack justify="space-between" align="center">
-                <Heading size="sm">Settings</Heading>
-                {!settingsLoading && (
-                  <IconButton
-                    size="sm"
-                    aria-label={isEditingSettings ? "Finish editing settings" : "Edit settings"}
-                    variant={isEditingSettings ? "solid" : "ghost"}
-                    colorScheme="yellow"
-                    onClick={() => setIsEditingSettings((v) => !v)}
-                    icon={
-                      <Box as="span" display="inline-flex">
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                        </svg>
-                      </Box>
-                    }
-                  />
-                )}
+            <Box borderWidth="1px" borderRadius="lg" p={5} bg="white">
+              <HStack justify="space-between" align="flex-start" flexWrap="wrap" gap={3}>
+                <VStack align="flex-start" spacing={1}>
+                  <Text fontSize="sm" color="gray.500">
+                    RSVP Detail
+                  </Text>
+                  <HStack spacing={3} flexWrap="wrap">
+                    <Heading size="md">{selectedRsvp ? formatName(selectedRsvp.name) : "Select an RSVP"}</Heading>
+                    {selectedRsvp && <StatusTag status={selectedRsvp.status} size="md" />}
+                  </HStack>
+                  {selectedRsvp?.createdAt && (
+                    <Text fontSize="xs" color="gray.500">
+                      Submitted {fmt(selectedRsvp.createdAt)}
+                    </Text>
+                  )}
+                </VStack>
+                <Stack direction={{ base: "column", md: "row" }} spacing={2} align="flex-start">
+                  <Button variant="outline" onClick={handleClearRsvpSelection} isDisabled={!selectedRsvp && !rsvpDetailLoading}>
+                    Clear selection
+                  </Button>
+                  <Button
+                    colorScheme="green"
+                    variant="solid"
+                    onClick={() => updateStatusAndSave("ACCEPTED")}
+                    isDisabled={!selectedRsvp || isEditingRsvp}
+                    isLoading={rsvpSaving}
+                  >
+                    Mark accepted
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    variant="outline"
+                    onClick={() => updateStatusAndSave("DECLINED")}
+                    isDisabled={!selectedRsvp || isEditingRsvp}
+                    isLoading={rsvpSaving}
+                  >
+                    Mark declined
+                  </Button>
+                  <Button
+                    colorScheme="purple"
+                    variant="outline"
+                    onClick={() => updateStatusAndSave("WAITLISTED")}
+                    isDisabled={!selectedRsvp || isEditingRsvp}
+                    isLoading={rsvpSaving}
+                  >
+                    Waitlist
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    variant="ghost"
+                    onClick={() => selectedRsvp && deleteRsvp(selectedRsvp)}
+                    isDisabled={!selectedRsvp || rsvpDetailLoading}
+                  >
+                    Delete RSVP
+                  </Button>
+                </Stack>
               </HStack>
-            </Drawer.Header>
-            <Drawer.Body>
-            {settingsLoading ? (
-              <Text color="gray.600">Loading settings...</Text>
-            ) : (
-              <VStack align="stretch" spacing={4}>
-                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                  <HStack justify="space-between" align="center">
-                    <Box>
-                      <Heading size="sm" color="teal.700">
-                        Close RSVPs
-                      </Heading>
-                      <Text fontSize="sm" color="gray.600">
-                        Prevent all new submissions.
-                      </Text>
-                    </Box>
-                    {isEditingSettings ? (
-                      <Switch
-                        size="lg"
-                        isChecked={settings.rsvpClosed}
-                        onChange={() => toggleSetting("rsvpClosed")}
-                        isDisabled={settingsSaving}
-                        colorScheme="yellow"
-                      />
-                    ) : (
-                      <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
-                    )}
-                  </HStack>
-                  <Text mt={2} fontSize="sm" color="gray.600">
-                    Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
-                  </Text>
-                </Box>
-
-                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                  <HStack justify="space-between" align="center">
-                    <Box>
-                      <Heading size="sm" color="teal.700">
-                        Allow Strangers
-                      </Heading>
-                      <Text fontSize="sm" color="gray.600">
-                        Let anyone RSVP without an invite token.
-                      </Text>
-                    </Box>
-                    {isEditingSettings ? (
-                      <Switch
-                        size="lg"
-                        isChecked={settings.rsvpOpenToStrangers}
-                        onChange={() => toggleSetting("rsvpOpenToStrangers")}
-                        isDisabled={settingsSaving}
-                        colorScheme="yellow"
-                      />
-                    ) : (
-                      <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
-                    )}
-                  </HStack>
-                  <Text mt={2} fontSize="sm" color="gray.600">
-                    Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
-                  </Text>
-                </Box>
-              </VStack>
-            )}
-            </Drawer.Body>
-            <Drawer.Footer>
-              <Button onClick={closeSettings} variant="outline">
-                Close
-              </Button>
-            </Drawer.Footer>
-          </Drawer.Content>
-        </Drawer.Positioner>
-      </Drawer.Root>
-
-      <Dialog.Root
-        open={isRsvpModalOpen}
-        onOpenChange={({ open }) => {
-          if (!open) handleCloseRsvpModal();
-        }}
-      >
-        <Dialog.Backdrop bg="blackAlpha.500" backdropFilter="blur(4px)" />
-        <Dialog.Positioner>
-          <Dialog.Content maxW="920px" w="full" bg="white" borderRadius="lg" boxShadow="xl">
-            <Dialog.CloseTrigger position="absolute" top={4} right={4} rounded="full" />
-            <Dialog.Header>
-              <VStack align="flex-start" spacing={1}>
-                <Text fontSize="sm" color="gray.500">
-                  RSVP Detail
-                </Text>
-                <HStack spacing={3} flexWrap="wrap">
-                  <Heading size="md">{selectedRsvp ? formatName(selectedRsvp.name) : "RSVP"}</Heading>
-                  {selectedRsvp && <StatusTag status={selectedRsvp.status} size="md" />}
-                </HStack>
-                {selectedRsvp?.createdAt && (
-                  <Text fontSize="xs" color="gray.500">
-                    Submitted {fmt(selectedRsvp.createdAt)}
-                  </Text>
-                )}
-              </VStack>
-            </Dialog.Header>
-            <Dialog.Body>
+              <Separator mt={3} />
               {rsvpDetailLoading ? (
-                <Flex minH="220px" align="center" justify="center">
+                <Flex minH="200px" align="center" justify="center">
                   <Text>Loading RSVP...</Text>
                 </Flex>
               ) : selectedRsvp ? (
-                <VStack align="stretch" spacing={6}>
+                <VStack align="stretch" spacing={6} mt={4}>
                   <Box>
                     <Heading size="sm" color="teal.700">
                       Guest Overview
@@ -862,33 +792,152 @@ export default function AdminDashboard() {
                   )}
                 </VStack>
               ) : (
-                <Text color="gray.500">Select an RSVP to view its details.</Text>
+                <Text mt={4} color="gray.500">
+                  Select an RSVP to view its details.
+                </Text>
               )}
-            </Dialog.Body>
-            <Dialog.Footer justifyContent="space-between" flexWrap="wrap" gap={3}>
-              <Button variant="ghost" onClick={handleCloseRsvpModal}>
+              {selectedRsvp && !rsvpDetailLoading && (
+                <Flex justify="flex-end" gap={3} flexWrap="wrap" mt={4}>
+                  {isEditingRsvp ? (
+                    <>
+                      <Button variant="ghost" onClick={handleCancelEdit} isDisabled={rsvpSaving}>
+                        Cancel
+                      </Button>
+                      <Button colorScheme="yellow" onClick={() => saveRsvpDetail()} isLoading={rsvpSaving}>
+                        Save Changes
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="outline" onClick={handleClearRsvpSelection}>
+                        Close Detail
+                      </Button>
+                      <Button colorScheme="yellow" onClick={() => setIsEditingRsvp(true)}>
+                        Edit RSVP
+                      </Button>
+                    </>
+                  )}
+                </Flex>
+              )}
+            </Box>
+          </Stack>
+        )}
+
+        {view === "expected" && (
+          <ExpectedPanel expected={expected} expectedLoading={expectedLoading} totals={totals} />
+        )}
+      </Box>
+
+      <Drawer.Root
+        open={isSettingsOpen}
+        placement="right"
+        onOpenChange={(open) => (open ? openSettings() : closeSettings())}
+      >
+        <Drawer.Backdrop bg="blackAlpha.500" />
+        <Drawer.Positioner>
+          <Drawer.Content>
+            <Drawer.CloseTrigger />
+            <Drawer.Header borderBottomWidth="1px">
+              <HStack justify="space-between" align="center">
+                <Heading size="sm">Settings</Heading>
+                {!settingsLoading && (
+                  <IconButton
+                    size="sm"
+                    aria-label={isEditingSettings ? "Finish editing settings" : "Edit settings"}
+                    variant={isEditingSettings ? "solid" : "ghost"}
+                    colorScheme="yellow"
+                    onClick={() => setIsEditingSettings((v) => !v)}
+                    icon={
+                      <Box as="span" display="inline-flex">
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                      </Box>
+                    }
+                  />
+                )}
+              </HStack>
+            </Drawer.Header>
+            <Drawer.Body>
+            {settingsLoading ? (
+              <Text color="gray.600">Loading settings...</Text>
+            ) : (
+              <VStack align="stretch" spacing={4}>
+                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+                  <HStack justify="space-between" align="center">
+                    <Box>
+                      <Heading size="sm" color="teal.700">
+                        Close RSVPs
+                      </Heading>
+                      <Text fontSize="sm" color="gray.600">
+                        Prevent all new submissions.
+                      </Text>
+                    </Box>
+                    {isEditingSettings ? (
+                      <Switch
+                        size="lg"
+                        isChecked={settings.rsvpClosed}
+                        onChange={() => toggleSetting("rsvpClosed")}
+                        isDisabled={settingsSaving}
+                        colorScheme="yellow"
+                      />
+                    ) : (
+                      <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
+                    )}
+                  </HStack>
+                  <Text mt={2} fontSize="sm" color="gray.600">
+                    Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
+                  </Text>
+                </Box>
+
+                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+                  <HStack justify="space-between" align="center">
+                    <Box>
+                      <Heading size="sm" color="teal.700">
+                        Allow Strangers
+                      </Heading>
+                      <Text fontSize="sm" color="gray.600">
+                        Let anyone RSVP without an invite token.
+                      </Text>
+                    </Box>
+                    {isEditingSettings ? (
+                      <Switch
+                        size="lg"
+                        isChecked={settings.rsvpOpenToStrangers}
+                        onChange={() => toggleSetting("rsvpOpenToStrangers")}
+                        isDisabled={settingsSaving}
+                        colorScheme="yellow"
+                      />
+                    ) : (
+                      <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
+                    )}
+                  </HStack>
+                  <Text mt={2} fontSize="sm" color="gray.600">
+                    Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
+                  </Text>
+                </Box>
+              </VStack>
+            )}
+            </Drawer.Body>
+            <Drawer.Footer>
+              <Button onClick={closeSettings} variant="outline">
                 Close
               </Button>
-              {selectedRsvp && !rsvpDetailLoading && (
-                isEditingRsvp ? (
-                  <HStack spacing={3}>
-                    <Button variant="ghost" onClick={handleCancelEdit} isDisabled={rsvpSaving}>
-                      Cancel
-                    </Button>
-                    <Button colorScheme="yellow" onClick={saveRsvpDetail} isLoading={rsvpSaving}>
-                      Save Changes
-                    </Button>
-                  </HStack>
-                ) : (
-                  <Button colorScheme="yellow" onClick={() => setIsEditingRsvp(true)}>
-                    Edit RSVP
-                  </Button>
-                )
-              )}
-            </Dialog.Footer>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Dialog.Root>
+            </Drawer.Footer>
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Drawer.Root>
+
     </VStack>
   );
 }

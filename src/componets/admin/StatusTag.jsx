@@ -1,32 +1,38 @@
 import { Badge } from "@chakra-ui/react";
 
-const RSVP_STATUS_META = {
-  ACCEPTED: { label: "Accepted", scheme: "green" },
-  DECLINED: { label: "Declined", scheme: "red" },
-  WAITLISTED: { label: "Waitlisted", scheme: "purple" },
-  PENDING: { label: "Pending", scheme: "gray" },
+const STATUS_META = {
+  ACCEPTED: { label: "Accepted", palette: "green" },
+  DECLINED: { label: "Declined", palette: "red" },
+  WAITLISTED: { label: "Waitlisted", palette: "purple" },
+  PENDING: { label: "Pending", palette: "gray" },
+  OPEN: { label: "Open", palette: "green" },
+  CLOSED: { label: "Closed", palette: "red" },
+  ANYONE: { label: "Anyone", palette: "green" },
+  INVITE: { label: "Invite Only", palette: "blue" },
 };
 
 const getStatusMeta = (status) => {
-  if (!status) return { label: "Pending", scheme: "gray" };
-  const key = String(status).toUpperCase();
-  if (RSVP_STATUS_META[key]) return RSVP_STATUS_META[key];
-  return { label: status, scheme: "blue" };
+  const key = status ? String(status).toUpperCase() : "PENDING";
+  return STATUS_META[key] || { label: String(status || "Pending"), palette: "blue" };
 };
 
 export default function StatusTag({ status, size = "sm" }) {
   const meta = getStatusMeta(status);
+  const palette = meta.palette || "gray";
   return (
     <Badge
       size={size}
-      colorScheme={meta.scheme}
-      variant="subtle"
+      colorPalette={palette}
       borderRadius="full"
       px={3}
       py={1}
       textTransform="uppercase"
       letterSpacing="wide"
       fontWeight="600"
+      bgColor={`${palette}.100`}
+      color={`${palette}.800`}
+      borderWidth="1px"
+      borderColor={`${palette}.200`}
     >
       {meta.label}
     </Badge>
