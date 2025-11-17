@@ -11,6 +11,8 @@ export const ToastProvider = ({ children }) => {
     const safeMessage =
       typeof message === "string"
         ? message
+        : message?.message && typeof message.message === "string"
+        ? message.message
         : message?.toString?.() || "Something went wrong.";
     setToasts((prev) => [...prev, { id, message: safeMessage, status, duration }]);
 
@@ -52,11 +54,10 @@ export const ToastProvider = ({ children }) => {
                 pointerEvents="auto"
                 onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
               >
-                <Text
-                  fontSize="lg"
-                  textShadow="0 0 12px rgba(0,0,0,0.2)"
-                >
-                  {toast.message}
+                <Text fontSize="lg" textShadow="0 0 12px rgba(0,0,0,0.2)">
+                  {typeof toast.message === "string"
+                    ? toast.message
+                    : toast.message?.toString?.() || "Something went wrong."}
                 </Text>
               </Box>
           ))}
