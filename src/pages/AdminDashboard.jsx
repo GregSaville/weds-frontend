@@ -413,7 +413,13 @@ export default function AdminDashboard() {
   const updateStatusAndSave = async (status) => {
     if (!status || !selectedRsvp?.id) return;
     handleStatusChange(status);
-    await saveRsvpDetail({ status, approvalStatus: "APPROVED" });
+    await saveRsvpDetail({ status });
+  };
+
+  const updateApprovalAndSave = async (approvalStatus) => {
+    if (!approvalStatus || !selectedRsvp?.id) return;
+    handleApprovalChange(approvalStatus);
+    await saveRsvpDetail({ approvalStatus });
   };
 
   const handleClearRsvpSelection = () => {
@@ -628,22 +634,22 @@ export default function AdminDashboard() {
                       Clear selection
                     </Button>
                     <Button
-                      colorScheme="green"
+                      colorScheme={(selectedRsvp?.approvalStatus || "PENDING_REVIEW").toUpperCase() === "APPROVED" ? "green" : "blue"}
                       variant="solid"
-                      onClick={() => updateStatusAndSave("ACCEPTED")}
+                      onClick={() => updateApprovalAndSave("APPROVED")}
                       isDisabled={!selectedRsvp || isEditingRsvp}
                       isLoading={rsvpSaving}
                     >
-                      Mark accepted
+                      Mark Approved
                     </Button>
                     <Button
-                      colorScheme="red"
+                      colorScheme="yellow"
                       variant="outline"
-                      onClick={() => updateStatusAndSave("DECLINED")}
+                      onClick={() => updateApprovalAndSave("PENDING_REVIEW")}
                       isDisabled={!selectedRsvp || isEditingRsvp}
                       isLoading={rsvpSaving}
                     >
-                      Mark declined
+                      Mark Pending Review
                     </Button>
                     <Button
                       colorScheme="red"
@@ -746,22 +752,6 @@ export default function AdminDashboard() {
                         </Heading>
                         <Separator mt={1} />
                         <VStack align="stretch" spacing={4} mt={4}>
-                          <FormControl>
-                            <FormLabel fontSize="sm">Approval Status</FormLabel>
-                            <Stack direction="row" flexWrap="wrap" spacing={2}>
-                              {APPROVAL_STATUS_ORDER.map((approvalKey) => (
-                                <Button
-                                  key={approvalKey}
-                                  size="sm"
-                                  variant={String(selectedRsvp.approvalStatus || "").toUpperCase() === approvalKey ? "solid" : "outline"}
-                                  colorScheme={getStatusMeta(approvalKey).scheme}
-                                  onClick={() => handleApprovalChange(approvalKey)}
-                                >
-                                  {getStatusMeta(approvalKey).label}
-                                </Button>
-                              ))}
-                            </Stack>
-                          </FormControl>
                           <FormControl>
                             <FormLabel fontSize="sm">Response Status</FormLabel>
                             <Stack direction="row" flexWrap="wrap" spacing={2}>
