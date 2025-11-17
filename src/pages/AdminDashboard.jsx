@@ -132,54 +132,43 @@ export default function AdminDashboard() {
     }
   }, [adminBase, showToast]);
 
-  // Load RSVPs when the RSVPs tab is selected
-  useEffect(() => {
-    const loadRsvps = async () => {
-      if (view !== "rsvps") return;
-      setRsvpsLoading(true);
-      try {
-        const base = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
-        const res = await axios.get(`${base}/rsvps`, {
-          headers: { Authorization: getAuthHeader() },
-        });
-        setRsvps(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        showToast(`Error fetching RSVPs: ${err.response?.data?.message || err.message}`, "error");
-      } finally {
-        setRsvpsLoading(false);
-      }
-    };
-    loadRsvps();
-  }, [view, showToast, adminBase]);
+  const reloadRsvps = useCallback(async () => {
+    setRsvpsLoading(true);
+    try {
+      const res = await axios.get(`${adminBase}/rsvps`, {
+        headers: { Authorization: getAuthHeader() },
+      });
+      setRsvps(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      showToast(`Error fetching RSVPs: ${err.response?.data?.message || err.message}`, "error");
+    } finally {
+      setRsvpsLoading(false);
+    }
+  }, [adminBase, showToast]);
 
-  // Load Expected Turnout when selected
-  useEffect(() => {
-    const loadExpected = async () => {
-      if (view !== "expected") return;
-      setExpectedLoading(true);
-      try {
-        const res = await axios.get(`${adminBase}/expected-turnout`, {
-          headers: { Authorization: getAuthHeader() },
-        });
-        if (res.data && Array.isArray(res.data.attendees)) {
-          setExpected(res.data.attendees);
-          setTurnoutCount(Number(res.data.count) || 0);
-        } else if (Array.isArray(res.data)) {
-          // backward compatibility: API returned a plain list
-          setExpected(res.data);
-          setTurnoutCount(0);
-        } else {
-          setExpected([]);
-          setTurnoutCount(0);
-        }
-      } catch (err) {
-        showToast(`Error fetching expected turnout: ${err.response?.data?.message || err.message}`, "error");
-      } finally {
-        setExpectedLoading(false);
+  const loadExpected = useCallback(async () => {
+    setExpectedLoading(true);
+    try {
+      const res = await axios.get(`${adminBase}/expected-turnout`, {
+        headers: { Authorization: getAuthHeader() },
+      });
+      if (res.data && Array.isArray(res.data.attendees)) {
+        setExpected(res.data.attendees);
+        setTurnoutCount(Number(res.data.count) || 0);
+      } else if (Array.isArray(res.data)) {
+        // backward compatibility: API returned a plain list
+        setExpected(res.data);
+        setTurnoutCount(0);
+      } else {
+        setExpected([]);
+        setTurnoutCount(0);
       }
-    };
-    loadExpected();
-  }, [view, showToast, adminBase]);
+    } catch (err) {
+      showToast(`Error fetching expected turnout: ${err.response?.data?.message || err.message}`, "error");
+    } finally {
+      setExpectedLoading(false);
+    }
+  }, [adminBase, showToast]);
 
   const loadSettings = useCallback(async () => {
     setSettingsLoading(true);
@@ -211,12 +200,23 @@ export default function AdminDashboard() {
       }
 
       await reloadInvitees();
+      await reloadRsvps();
+      await loadExpected();
       await loadSettings();
       setLoading(false);
     };
 
     bootstrap();
-  }, [navigate, showToast, reloadInvitees, loadSettings]);
+  }, [navigate, showToast, reloadInvitees, loadSettings, reloadRsvps, loadExpected]);
+
+  // Refresh list data when switching tabs to keep counts fresh
+  useEffect(() => {
+    if (view === "rsvps") {
+      reloadRsvps();
+    } else if (view === "expected") {
+      loadExpected();
+    }
+  }, [view, reloadRsvps, loadExpected]);
 
   const saveSettings = async (nextSettings) => {
     setSettingsSaving(true);
