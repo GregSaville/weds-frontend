@@ -61,7 +61,9 @@
     "inviteCodeLoad": "Load invite",
     "inviteOnlyReminder": "Load your invite code to enable submitting.",
     "strangerCta": "Don't have a code? RSVP as a stranger!",
-    "lockedMessage": "Contact David and Rachel to make any changes to your RSVP."
+    "lockedMessage": "Contact David and Rachel to make any changes to your RSVP.",
+    "submitSuccessTitle": "Thanks for your submission!",
+    "submitSuccessBody": "We received your RSVP. If you need to change anything, please contact David and Rachel."
   },
   "weddingParty": {
     "title": "Wedding Party",

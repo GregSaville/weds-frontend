@@ -61,7 +61,9 @@
     "inviteOnlyReminder": "Carga tu codigo de invitacion para habilitar el envio.",
     "closedEnded": "Lo sentimos, el periodo para confirmar asistencia ha finalizado.",
     "strangerCta": "¿No tienes codigo? Confirma como invitado externo.",
-    "lockedMessage": "Contacta a David y Rachel para hacer cambios en tu RSVP."
+    "lockedMessage": "Contacta a David y Rachel para hacer cambios en tu RSVP.",
+    "submitSuccessTitle": "¡Gracias por tu confirmación!",
+    "submitSuccessBody": "Hemos recibido tu RSVP. Si necesitas cambiar algo, por favor contacta a David y Rachel."
   },
   "weddingParty": {
     "title": "Corte Nupcial",

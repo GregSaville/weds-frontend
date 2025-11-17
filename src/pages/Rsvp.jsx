@@ -43,6 +43,7 @@ export default function Rsvp() {
   const [inviteReady, setInviteReady] = useState(false);
   const [isStrangerMode, setIsStrangerMode] = useState(false);
   const [sessionLockedId, setSessionLockedId] = useState("");
+  const [justSubmitted, setJustSubmitted] = useState(false);
 
   const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
   const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || `${publicBase}/rsvp`;
@@ -239,6 +240,7 @@ export default function Rsvp() {
           const safeId = String(generatedSessionId);
           localStorage.setItem(SESSION_STORAGE_KEY, safeId);
           setSessionLockedId(safeId);
+          setJustSubmitted(true);
         } catch (storageErr) {
           console.error("Failed to persist RSVP session id", storageErr);
         }
@@ -296,6 +298,23 @@ export default function Rsvp() {
             <Text fontSize="lg" textAlign="center" color="gray.800">
               {t("rsvp.closedEnded")}
             </Text>
+          </Box>
+        ) : isSessionLocked ? (
+          <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
+            <VStack spacing={3} align="stretch" color="black" textAlign="center">
+              <Heading size="lg">{t("rsvp.submitSuccessTitle")}</Heading>
+              <Text fontSize="md" color="gray.800">
+                {t("rsvp.submitSuccessBody")}
+              </Text>
+              {justSubmitted && (
+                <Alert status="success" borderRadius="md" bg="green.50" color="gray.800" justifyContent="center">
+                  {t("rsvp.toastSubmitted")}
+                </Alert>
+              )}
+              <Alert status="info" borderRadius="md" bg="yellow.50" color="gray.800" justifyContent="center">
+                {t("rsvp.lockedMessage")}
+              </Alert>
+            </VStack>
           </Box>
         ) : inviteRequiredAndMissing ? (
           <Box mt={8} w="100%" maxW="2xl" bg="rgba(255,255,255,0.7)" p={6} borderRadius="xl" boxShadow="0 4px 10px rgba(0,0,0,0.08)">
