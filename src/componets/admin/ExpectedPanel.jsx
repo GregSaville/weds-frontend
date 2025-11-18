@@ -17,7 +17,7 @@ export default function ExpectedPanel({ expected, expectedLoading, totals }) {
         note: ag.specialAccommodations || "-",
       })),
     ];
-    return { id: a.id || idx, partySize, rows };
+    return { id: a.id || idx, partySize, rows, mainName };
   });
 
   return (
@@ -52,7 +52,7 @@ export default function ExpectedPanel({ expected, expectedLoading, totals }) {
                   <Table.Row key={`group-${group.id}`} bg="gray.50">
                     <Table.Cell colSpan={3}>
                       <Text fontWeight="700" color="teal.700">
-                        Group {gIdx + 1} · Party of {group.partySize}
+                        Group {gIdx + 1} of {groups.length} · {group.mainName || "Attendee"}'s party (party of {group.partySize})
                       </Text>
                     </Table.Cell>
                   </Table.Row>,

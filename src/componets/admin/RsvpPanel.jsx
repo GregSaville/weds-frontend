@@ -1,7 +1,60 @@
-import { Box, Button, Heading, Stack, Table, Text } from "@chakra-ui/react";
+import { Box, Button, Heading, Stack, Table, Text, useBreakpointValue } from "@chakra-ui/react";
 import StatusTag from "./StatusTag";
 
 export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, deleteRsvp, selectedRsvpId }) {
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
+  const renderMobile = () => {
+    if (rsvpsLoading) {
+      return <Text>Loading RSVPs...</Text>;
+    }
+    if (!rsvps.length) {
+      return <Text color="gray.600">No RSVPs have been submitted yet.</Text>;
+    }
+    return (
+      <Stack spacing={3}>
+        {rsvps.map((r) => {
+          const approval = r.approvalStatus || "PENDING_REVIEW";
+          return (
+            <Box
+              key={r.id}
+              p={4}
+              borderWidth="1px"
+              borderRadius="lg"
+              bg={selectedRsvpId === r.id ? "yellow.50" : "white"}
+              onClick={() => viewRsvpDetail(r.id)}
+              cursor="pointer"
+              boxShadow="sm"
+            >
+              <Stack spacing={2}>
+                <Stack direction="row" justify="space-between" align="center">
+                  <Text fontWeight="700">{r.name ? `${r.name.firstName || ""} ${r.name.lastName || ""}`.trim() : "-"}</Text>
+                  <StatusTag status={r.status} />
+                </Stack>
+                <StatusTag status={approval} />
+                <Text color="gray.700">{r.message ? `${String(r.message).slice(0, 80)}${String(r.message).length > 80 ? "..." : ""}` : "No message"}</Text>
+                <Text fontSize="xs" color="gray.500">
+                  {fmt(r.createdAt)}
+                </Text>
+                <Button
+                  size="sm"
+                  colorScheme="red"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteRsvp(r);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Stack>
+            </Box>
+          );
+        })}
+      </Stack>
+    );
+  };
+
   const renderRows = () => {
     if (rsvpsLoading) {
       return (
@@ -76,21 +129,25 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
       <Heading size="md" color="teal.700">
         RSVPs
       </Heading>
-      <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
-        <Table.Root variant="outline" size="sm">
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeader>Name</Table.ColumnHeader>
-              <Table.ColumnHeader>Status</Table.ColumnHeader>
-              <Table.ColumnHeader>Review Status</Table.ColumnHeader>
-              <Table.ColumnHeader>Message</Table.ColumnHeader>
-              <Table.ColumnHeader>Created</Table.ColumnHeader>
-              <Table.ColumnHeader>Actions</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>{renderRows()}</Table.Body>
-        </Table.Root>
-      </Box>
+      {isMobile ? (
+        renderMobile()
+      ) : (
+        <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
+          <Table.Root variant="outline" size="sm">
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>Name</Table.ColumnHeader>
+                <Table.ColumnHeader>Status</Table.ColumnHeader>
+                <Table.ColumnHeader>Review Status</Table.ColumnHeader>
+                <Table.ColumnHeader>Message</Table.ColumnHeader>
+                <Table.ColumnHeader>Created</Table.ColumnHeader>
+                <Table.ColumnHeader>Actions</Table.ColumnHeader>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>{renderRows()}</Table.Body>
+          </Table.Root>
+        </Box>
+      )}
     </Stack>
   );
 }
