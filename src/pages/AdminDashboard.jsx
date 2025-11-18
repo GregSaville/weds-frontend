@@ -449,7 +449,7 @@ export default function AdminDashboard() {
   const rsvpDetailContent =
     selectedRsvp || rsvpDetailLoading || activeRsvpId
       ? (
-          <Box borderWidth="1px" borderRadius="lg" p={5} bg="white" position="relative">
+          <Box borderWidth="1px" borderRadius="lg" p={5} pr={{ base: 5, md: 12 }} bg="white" position="relative">
             {selectedRsvp && (
               <Box position="absolute" top={{ base: 1, md: 2 }} left={{ base: 3, md: 4 }} fontSize="xs" color="gray.500">
                 {(selectedRsvp.approvalStatus || "PENDING_REVIEW").toUpperCase()}
@@ -469,6 +469,7 @@ export default function AdminDashboard() {
               bg="white"
               boxShadow="sm"
               borderRadius="full"
+              zIndex={2}
               _hover={{ bg: "gray.100" }}
               onClick={handleClearRsvpSelection}
               isDisabled={!selectedRsvp && !rsvpDetailLoading}

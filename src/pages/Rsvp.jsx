@@ -103,9 +103,20 @@ export default function Rsvp() {
         setIsStrangerMode(false);
         setHasResponded(!!data.hasResponded);
         if (data.hasResponded) {
-          const lockToken = data.sessionId || data.guestId || trimmed;
-          if (lockToken) {
-            setSessionLockedId(String(lockToken));
+          const lockToken =
+            data.sessionId ||
+            data.guestId ||
+            trimmed ||
+            (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" && crypto.randomUUID()) ||
+            `rsvp-${Date.now()}`;
+          const safeToken = String(lockToken);
+          if (safeToken) {
+            setSessionLockedId(safeToken);
+            try {
+              localStorage.setItem(SESSION_STORAGE_KEY, safeToken);
+            } catch (err) {
+              console.error("Failed to persist RSVP session id", err);
+            }
           }
         }
       } catch (err) {
