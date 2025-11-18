@@ -444,11 +444,17 @@ export default function AdminDashboard() {
 
   const additionalGuestCount = Array.isArray(selectedRsvp?.additionalGuests) ? selectedRsvp.additionalGuests.length : 0;
   const totalGuestsResponding = selectedRsvp ? 1 + additionalGuestCount : 0;
+  const approvalState = (selectedRsvp?.approvalStatus || "PENDING_REVIEW").toUpperCase();
 
   const rsvpDetailContent =
     selectedRsvp || rsvpDetailLoading || activeRsvpId
       ? (
           <Box borderWidth="1px" borderRadius="lg" p={5} bg="white" position="relative">
+            {selectedRsvp && (
+              <Box position="absolute" top={{ base: 1, md: 2 }} left={{ base: 3, md: 4 }} fontSize="xs" color="gray.500">
+                {(selectedRsvp.approvalStatus || "PENDING_REVIEW").toUpperCase()}
+              </Box>
+            )}
             <Button
               size="xs"
               aria-label="Clear selection"
@@ -456,11 +462,13 @@ export default function AdminDashboard() {
               position="absolute"
               top={{ base: 2, md: 3 }}
               right={{ base: 2, md: 3 }}
-              minW="24px"
-              px={2}
-              py={1}
+              minW="28px"
+              px={3}
+              py={2}
               fontWeight="700"
               bg="white"
+              boxShadow="sm"
+              borderRadius="full"
               _hover={{ bg: "gray.100" }}
               onClick={handleClearRsvpSelection}
               isDisabled={!selectedRsvp && !rsvpDetailLoading}
@@ -484,24 +492,28 @@ export default function AdminDashboard() {
                 )}
               </VStack>
               <Stack direction={{ base: "column", md: "row" }} spacing={2} align="flex-start">
-                <Button
-                  colorScheme={(selectedRsvp?.approvalStatus || "PENDING_REVIEW").toUpperCase() === "APPROVED" ? "green" : "blue"}
-                  variant="solid"
-                  onClick={() => updateApprovalAndSave("APPROVED")}
-                  isDisabled={!selectedRsvp || isEditingRsvp}
-                  isLoading={rsvpSaving}
-                >
-                  Mark Approved
-                </Button>
-                <Button
-                  colorScheme="yellow"
-                  variant="outline"
-                  onClick={() => updateApprovalAndSave("PENDING_REVIEW")}
-                  isDisabled={!selectedRsvp || isEditingRsvp}
-                  isLoading={rsvpSaving}
-                >
-                  Mark Pending Review
-                </Button>
+                {selectedRsvp && approvalState !== "APPROVED" && (
+                  <Button
+                    colorScheme="green"
+                    variant="solid"
+                    onClick={() => updateApprovalAndSave("APPROVED")}
+                    isDisabled={!selectedRsvp || isEditingRsvp}
+                    isLoading={rsvpSaving}
+                  >
+                    Mark Approved
+                  </Button>
+                )}
+                {selectedRsvp && approvalState === "APPROVED" && (
+                  <Button
+                    colorScheme="yellow"
+                    variant="outline"
+                    onClick={() => updateApprovalAndSave("PENDING_REVIEW")}
+                    isDisabled={!selectedRsvp || isEditingRsvp}
+                    isLoading={rsvpSaving}
+                  >
+                    Mark Pending Review
+                  </Button>
+                )}
               </Stack>
             </HStack>
             <Separator mt={3} />
@@ -722,6 +734,9 @@ export default function AdminDashboard() {
         )
       );
       showToast("RSVP updated", "success");
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
     } catch (err) {
       showToast(`Update failed: ${err.response?.data?.message || err.message}`, "error");
     } finally {
