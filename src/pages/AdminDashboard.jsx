@@ -14,9 +14,10 @@ import {
   VStack,
   FieldRoot as FormControl,
   FieldLabel as FormLabel,
-  Switch,
+  SwitchRoot,
+  SwitchControl,
+  SwitchThumb,
   IconButton,
-  Image,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -27,7 +28,6 @@ import GuestPanel from "../componets/admin/GuestPanel";
 import RsvpPanel from "../componets/admin/RsvpPanel";
 import ExpectedPanel from "../componets/admin/ExpectedPanel";
 import StatusTag from "../componets/admin/StatusTag";
-import settingsIcon from "../img/icon/settings-icon.png";
 
 const getStatusMeta = (status) => {
   if (!status) return { label: "Pending", scheme: "gray" };
@@ -61,6 +61,14 @@ const InfoStat = ({ label, value }) => {
     </Box>
   );
 };
+
+const HamburgerIcon = () => (
+  <Box as="span" display="inline-flex" flexDirection="column" justifyContent="center" gap="4px">
+    <Box w="18px" h="2px" bg="currentColor" borderRadius="full" />
+    <Box w="18px" h="2px" bg="currentColor" borderRadius="full" />
+    <Box w="18px" h="2px" bg="currentColor" borderRadius="full" />
+  </Box>
+);
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
@@ -787,7 +795,7 @@ export default function AdminDashboard() {
         <Spacer />
         <IconButton
           aria-label="Open settings"
-          icon={<Image src={settingsIcon} alt="Settings" boxSize="18px" objectFit="contain" />}
+          icon={<HamburgerIcon />}
           variant="outline"
           colorScheme="yellow"
           onClick={() => {
@@ -956,13 +964,17 @@ export default function AdminDashboard() {
                   Prevent all new submissions.
                 </Text>
                 {isEditingSettings ? (
-                  <Switch
+                  <SwitchRoot
                     size="lg"
-                    isChecked={settings.rsvpClosed}
-                    onChange={() => toggleSetting("rsvpClosed")}
-                    isDisabled={settingsSaving}
-                    colorScheme="yellow"
-                  />
+                    checked={settings.rsvpClosed}
+                    onCheckedChange={() => toggleSetting("rsvpClosed")}
+                    disabled={settingsSaving}
+                    colorPalette="yellow"
+                  >
+                    <SwitchControl>
+                      <SwitchThumb />
+                    </SwitchControl>
+                  </SwitchRoot>
                 ) : (
                   <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
                 )}
@@ -981,13 +993,17 @@ export default function AdminDashboard() {
                   Let anyone RSVP without an invite token.
                 </Text>
                 {isEditingSettings ? (
-                  <Switch
+                  <SwitchRoot
                     size="lg"
-                    isChecked={settings.rsvpOpenToStrangers}
-                    onChange={() => toggleSetting("rsvpOpenToStrangers")}
-                    isDisabled={settingsSaving}
-                    colorScheme="yellow"
-                  />
+                    checked={settings.rsvpOpenToStrangers}
+                    onCheckedChange={() => toggleSetting("rsvpOpenToStrangers")}
+                    disabled={settingsSaving}
+                    colorPalette="yellow"
+                  >
+                    <SwitchControl>
+                      <SwitchThumb />
+                    </SwitchControl>
+                  </SwitchRoot>
                 ) : (
                   <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
                 )}
