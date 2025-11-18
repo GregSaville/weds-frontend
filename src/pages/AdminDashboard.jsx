@@ -242,11 +242,13 @@ export default function AdminDashboard() {
   };
 
   const toggleSetting = (key, checkedValue) => {
-    if (typeof checkedValue === "boolean") {
-      setSettingValue(key, checkedValue);
-      return;
-    }
-    setSettingValue(key, !settings[key]);
+    const next =
+      typeof checkedValue === "boolean"
+        ? checkedValue
+        : typeof checkedValue === "object" && checkedValue !== null
+          ? checkedValue.checked ?? checkedValue.target?.checked ?? !settings[key]
+          : !settings[key];
+    setSettingValue(key, next);
   };
 
   const fmt = (ts) => {
@@ -503,7 +505,10 @@ export default function AdminDashboard() {
               borderRadius="full"
               zIndex={2}
               _hover={{ bg: "gray.100" }}
-              onClick={handleClearRsvpSelection}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearRsvpSelection();
+              }}
               isDisabled={!selectedRsvp && !rsvpDetailLoading}
             >
               X
@@ -983,7 +988,7 @@ export default function AdminDashboard() {
                   <SwitchRoot
                     size="lg"
                     checked={settings.rsvpClosed}
-                    onCheckedChange={(details) => toggleSetting("rsvpClosed", details?.checked)}
+                    onCheckedChange={(details) => toggleSetting("rsvpClosed", details)}
                     disabled={settingsSaving}
                     colorPalette="yellow"
                   >
@@ -1012,7 +1017,7 @@ export default function AdminDashboard() {
                   <SwitchRoot
                     size="lg"
                     checked={settings.rsvpOpenToStrangers}
-                    onCheckedChange={(details) => toggleSetting("rsvpOpenToStrangers", details?.checked)}
+                    onCheckedChange={(details) => toggleSetting("rsvpOpenToStrangers", details)}
                     disabled={settingsSaving}
                     colorPalette="yellow"
                   >
