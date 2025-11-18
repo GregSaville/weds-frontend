@@ -12,12 +12,11 @@ import {
   Text,
   Textarea,
   VStack,
-  useDisclosure,
   FieldRoot as FormControl,
   FieldLabel as FormLabel,
   Switch,
   IconButton,
-  Drawer,
+  Image,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -28,44 +27,7 @@ import GuestPanel from "../componets/admin/GuestPanel";
 import RsvpPanel from "../componets/admin/RsvpPanel";
 import ExpectedPanel from "../componets/admin/ExpectedPanel";
 import StatusTag from "../componets/admin/StatusTag";
-
-const SettingsGlyph = (props) => (
-  <Box as="span" display="inline-flex" {...props}>
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <circle cx="12" cy="12" r="3.5" />
-      <path d="M19.4 15a2 2 0 0 0 .4 2.2l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-2.2-.4 2 2 0 0 0-1.2 1.8V22a2 2 0 0 1-4 0v-.2a2 2 0 0 0-1.2-1.8 2 2 0 0 0-2.2.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 5 15a2 2 0 0 0-1.8-1.2H3a2 2 0 0 1 0-4h.2A2 2 0 0 0 5 8.6a2 2 0 0 0-.4-2.2l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 9.6 4a2 2 0 0 0 1.2-1.8V2a2 2 0 0 1 4 0v.2A2 2 0 0 0 16 4a2 2 0 0 0 2.2-.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 19.4 9c.9 0 1.7.5 1.8 1.4V11a2 2 0 0 1 0 2v.2a2 2 0 0 0-1.8 1.8Z" />
-    </svg>
-  </Box>
-);
-
-const CloseGlyph = (props) => (
-  <Box as="span" display="inline-flex" {...props}>
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  </Box>
-);
+import settingsIcon from "../img/icon/settings-icon.png";
 
 const getStatusMeta = (status) => {
   if (!status) return { label: "Pending", scheme: "gray" };
@@ -117,7 +79,7 @@ export default function AdminDashboard() {
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { isOpen: isSettingsOpen, onOpen: openSettings, onClose: closeSettings } = useDisclosure();
+  const [showSettings, setShowSettings] = useState(false);
   const [isEditingRsvp, setIsEditingRsvp] = useState(false);
   const [activeRsvpId, setActiveRsvpId] = useState(null);
 
@@ -462,17 +424,20 @@ export default function AdminDashboard() {
     selectedRsvp || rsvpDetailLoading || activeRsvpId
       ? (
           <Box borderWidth="1px" borderRadius="lg" p={5} bg="white" position="relative">
-            <IconButton
-              size="sm"
+            <Button
+              size="xs"
               aria-label="Clear selection"
-              icon={<CloseGlyph />}
               variant="ghost"
               position="absolute"
               top={3}
               right={3}
+              minW="24px"
+              fontWeight="700"
               onClick={handleClearRsvpSelection}
               isDisabled={!selectedRsvp && !rsvpDetailLoading}
-            />
+            >
+              X
+            </Button>
             <HStack justify="space-between" align="flex-start" flexWrap="wrap" gap={3}>
               <VStack align="flex-start" spacing={1}>
                 <Text fontSize="sm" color="gray.500">
@@ -752,12 +717,13 @@ export default function AdminDashboard() {
         <Spacer />
         <IconButton
           aria-label="Open settings"
-          icon={<SettingsGlyph />}
+          icon={<Image src={settingsIcon} alt="Settings" boxSize="18px" objectFit="contain" />}
           variant="outline"
           colorScheme="yellow"
           onClick={() => {
-            openSettings();
-            loadSettings();
+            const next = !showSettings;
+            setShowSettings(next);
+            if (next) loadSettings();
           }}
           isDisabled={settingsLoading}
         />
@@ -871,115 +837,82 @@ export default function AdminDashboard() {
         )}
       </Box>
 
-      <Drawer.Root
-        open={isSettingsOpen}
-        placement="right"
-        onOpenChange={(open) => (open ? openSettings() : closeSettings())}
-      >
-        <Drawer.Backdrop bg="blackAlpha.500" />
-        <Drawer.Positioner>
-          <Drawer.Content>
-            <Drawer.CloseTrigger />
-            <Drawer.Header borderBottomWidth="1px">
-              <HStack justify="space-between" align="center">
-                <Heading size="sm">Settings</Heading>
-                {!settingsLoading && (
-                  <IconButton
-                    size="sm"
-                    aria-label={isEditingSettings ? "Finish editing settings" : "Edit settings"}
-                    variant={isEditingSettings ? "solid" : "ghost"}
-                    colorScheme="yellow"
-                    onClick={() => setIsEditingSettings((v) => !v)}
-                    icon={
-                      <Box as="span" display="inline-flex">
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                        </svg>
-                      </Box>
-                    }
-                  />
-                )}
-              </HStack>
-            </Drawer.Header>
-            <Drawer.Body>
-            {settingsLoading ? (
-              <Text color="gray.600">Loading settings...</Text>
-            ) : (
-              <VStack align="stretch" spacing={4}>
-                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                  <HStack justify="space-between" align="center">
-                    <Box>
-                      <Heading size="sm" color="teal.700">
-                        Close RSVPs
-                      </Heading>
-                      <Text fontSize="sm" color="gray.600">
-                        Prevent all new submissions.
-                      </Text>
-                    </Box>
-                    {isEditingSettings ? (
-                      <Switch
-                        size="lg"
-                        isChecked={settings.rsvpClosed}
-                        onChange={() => toggleSetting("rsvpClosed")}
-                        isDisabled={settingsSaving}
-                        colorScheme="yellow"
-                      />
-                    ) : (
-                      <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
-                    )}
-                  </HStack>
-                  <Text mt={2} fontSize="sm" color="gray.600">
-                    Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
-                  </Text>
-                </Box>
-
-                <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                  <HStack justify="space-between" align="center">
-                    <Box>
-                      <Heading size="sm" color="teal.700">
-                        Allow Strangers
-                      </Heading>
-                      <Text fontSize="sm" color="gray.600">
-                        Let anyone RSVP without an invite token.
-                      </Text>
-                    </Box>
-                    {isEditingSettings ? (
-                      <Switch
-                        size="lg"
-                        isChecked={settings.rsvpOpenToStrangers}
-                        onChange={() => toggleSetting("rsvpOpenToStrangers")}
-                        isDisabled={settingsSaving}
-                        colorScheme="yellow"
-                      />
-                    ) : (
-                      <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
-                    )}
-                  </HStack>
-                  <Text mt={2} fontSize="sm" color="gray.600">
-                    Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
-                  </Text>
-                </Box>
-              </VStack>
-            )}
-            </Drawer.Body>
-            <Drawer.Footer>
-              <Button onClick={closeSettings} variant="outline">
-                Close
+      {showSettings && (
+        <Box borderWidth="1px" borderRadius="lg" p={4} bg="white">
+          <HStack justify="space-between" align="center" mb={3}>
+            <Heading size="sm">Settings</Heading>
+            {!settingsLoading && (
+              <Button
+                size="sm"
+                variant={isEditingSettings ? "solid" : "ghost"}
+                colorScheme="yellow"
+                onClick={() => setIsEditingSettings((v) => !v)}
+              >
+                {isEditingSettings ? "Done" : "Edit"}
               </Button>
-            </Drawer.Footer>
-          </Drawer.Content>
-        </Drawer.Positioner>
-      </Drawer.Root>
+            )}
+          </HStack>
+          {settingsLoading ? (
+            <Text color="gray.600">Loading settings...</Text>
+          ) : (
+            <VStack align="stretch" spacing={4}>
+              <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+                <HStack justify="space-between" align="center">
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Close RSVPs
+                    </Heading>
+                    <Text fontSize="sm" color="gray.600">
+                      Prevent all new submissions.
+                    </Text>
+                  </Box>
+                  {isEditingSettings ? (
+                    <Switch
+                      size="lg"
+                      isChecked={settings.rsvpClosed}
+                      onChange={() => toggleSetting("rsvpClosed")}
+                      isDisabled={settingsSaving}
+                      colorScheme="yellow"
+                    />
+                  ) : (
+                    <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
+                  )}
+                </HStack>
+                <Text mt={2} fontSize="sm" color="gray.600">
+                  Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
+                </Text>
+              </Box>
+
+              <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+                <HStack justify="space-between" align="center">
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Allow Strangers
+                    </Heading>
+                    <Text fontSize="sm" color="gray.600">
+                      Let anyone RSVP without an invite token.
+                    </Text>
+                  </Box>
+                  {isEditingSettings ? (
+                    <Switch
+                      size="lg"
+                      isChecked={settings.rsvpOpenToStrangers}
+                      onChange={() => toggleSetting("rsvpOpenToStrangers")}
+                      isDisabled={settingsSaving}
+                      colorScheme="yellow"
+                    />
+                  ) : (
+                    <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
+                  )}
+                </HStack>
+                <Text mt={2} fontSize="sm" color="gray.600">
+                  Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
+                </Text>
+              </Box>
+            </VStack>
+          )}
+        </Box>
+      )}
 
     </VStack>
   );

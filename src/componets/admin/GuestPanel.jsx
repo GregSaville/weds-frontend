@@ -10,7 +10,9 @@ import {
   Text,
   useBreakpointValue,
   VStack,
+  Image,
 } from "@chakra-ui/react";
+import inputIcon from "../../img/icon/input-icon.png";
 
 export default function GuestPanel({
   invitees,
@@ -125,11 +127,18 @@ export default function GuestPanel({
                         onClick={() => openRsvpFromGuest(g.rsvpId)}
                         cursor="pointer"
                         boxShadow="sm"
+                        px={3}
+                        py={2}
+                        fontSize="sm"
+                        display="inline-flex"
+                        alignItems="center"
+                        gap={2}
                       >
+                        <Image src={inputIcon} alt="Open" boxSize="12px" objectFit="contain" />
                         Responded
                       </Badge>
                     ) : (
-                      <Badge colorPalette="yellow" variant="solid" boxShadow="sm">
+                      <Badge colorPalette="yellow" variant="solid" boxShadow="sm" px={3} py={2} fontSize="sm">
                         Pending
                       </Badge>
                     )}
@@ -192,11 +201,18 @@ export default function GuestPanel({
                       cursor="pointer"
                       boxShadow="sm"
                       title="View RSVP details"
+                      px={3}
+                      py={2}
+                      fontSize="sm"
+                      display="inline-flex"
+                      alignItems="center"
+                      gap={2}
                     >
+                      <Image src={inputIcon} alt="Open" boxSize="12px" objectFit="contain" />
                       Responded
                     </Badge>
                   ) : (
-                    <Badge colorPalette="yellow" variant="solid" boxShadow="sm">
+                    <Badge colorPalette="yellow" variant="solid" boxShadow="sm" px={3} py={2} fontSize="sm">
                       Pending
                     </Badge>
                   )}
