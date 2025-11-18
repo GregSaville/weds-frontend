@@ -716,10 +716,12 @@ export default function AdminDashboard() {
   }, [view]);
 
   useEffect(() => {
-    setSearchParams({
-      tab: view,
-      rsvp: view === "rsvps" && activeRsvpId ? activeRsvpId : undefined,
-    });
+    const params = new URLSearchParams();
+    params.set("tab", view);
+    if (view === "rsvps" && activeRsvpId) {
+      params.set("rsvp", activeRsvpId);
+    }
+    setSearchParams(params);
   }, [view, activeRsvpId, setSearchParams]);
 
   useEffect(() => {
