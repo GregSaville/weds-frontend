@@ -19,7 +19,7 @@ import {
   Image,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { checkAuth, clearAuth, getAuthHeader } from "../utils/auth";
 import axios from "axios";
 import { useToast } from "../componets/ToastProvider";
@@ -70,19 +70,26 @@ export default function AdminDashboard() {
   const [selectedRsvp, setSelectedRsvp] = useState(null);
   const [rsvpDetailLoading, setRsvpDetailLoading] = useState(false);
   const [rsvpSaving, setRsvpSaving] = useState(false);
-  const [view, setView] = useState("guests"); // 'guests' | 'rsvps'
   const [inviteFormOpen, setInviteFormOpen] = useState(false);
   const [inviteFirst, setInviteFirst] = useState("");
   const [inviteLast, setInviteLast] = useState("");
   const [inviteSize, setInviteSize] = useState("1");
   const [inviteForce, setInviteForce] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialView = (() => {
+    const tab = (searchParams.get("tab") || "").toLowerCase();
+    if (tab === "rsvps" || tab === "expected" || tab === "guests") return tab;
+    return "guests";
+  })();
+  const initialRsvpId = searchParams.get("rsvp") || null;
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [showSettings, setShowSettings] = useState(false);
   const [isEditingRsvp, setIsEditingRsvp] = useState(false);
-  const [activeRsvpId, setActiveRsvpId] = useState(null);
+  const [activeRsvpId, setActiveRsvpId] = useState(initialRsvpId);
 
+  const [view, setView] = useState(initialView);
   const [expected, setExpected] = useState([]);
   const [expectedLoading, setExpectedLoading] = useState(false);
   const [turnoutCount, setTurnoutCount] = useState(0);
@@ -366,6 +373,7 @@ export default function AdminDashboard() {
 
   const viewRsvpDetail = (id) => {
     if (!id) return;
+    setView("rsvps");
     setActiveRsvpId(id);
     setSelectedRsvp(null);
     setIsEditingRsvp(false);
@@ -706,6 +714,23 @@ export default function AdminDashboard() {
       setIsEditingRsvp(false);
     }
   }, [view]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("tab", view);
+    if (view === "rsvps" && activeRsvpId) {
+      params.set("rsvp", activeRsvpId);
+    }
+    setSearchParams(params);
+  }, [view, activeRsvpId, setSearchParams]);
+
+  useEffect(() => {
+    if (view === "rsvps" && activeRsvpId) {
+      if (!selectedRsvp || String(selectedRsvp.id) !== String(activeRsvpId)) {
+        loadRsvpDetail(activeRsvpId);
+      }
+    }
+  }, [view, activeRsvpId, selectedRsvp]);
 
   const saveRsvpDetail = async (overrides = {}) => {
     if (!selectedRsvp?.id) return;
