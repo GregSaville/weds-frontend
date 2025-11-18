@@ -3,6 +3,7 @@ import {
   Button,
   Flex,
   Heading,
+  Image,
   HStack,
   Input,
   SimpleGrid,
@@ -15,7 +16,6 @@ import {
   FieldRoot as FormControl,
   FieldLabel as FormLabel,
   IconButton,
-  Icon,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -26,6 +26,7 @@ import GuestPanel from "../componets/admin/GuestPanel";
 import RsvpPanel from "../componets/admin/RsvpPanel";
 import ExpectedPanel from "../componets/admin/ExpectedPanel";
 import StatusTag from "../componets/admin/StatusTag";
+import settingsIcon from "../img/icon/settings-icon.png";
 
 const getStatusMeta = (status) => {
   if (!status) return { label: "Pending", scheme: "gray" };
@@ -59,15 +60,6 @@ const InfoStat = ({ label, value }) => {
     </Box>
   );
 };
-
-const SettingsGearIcon = (props) => (
-  <Icon viewBox="0 0 24 24" boxSize="22px" {...props}>
-    <path
-      fill="currentColor"
-      d="M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Zm9.1 2.8a7.1 7.1 0 0 0-.1-1.2l2-1.5a.6.6 0 0 0 .14-.77l-1.9-3.2a.6.6 0 0 0-.73-.26l-2.3.9a7.1 7.1 0 0 0-2.2-1.2l-.3-2.4a.6.6 0 0 0-.6-.51H9.9a.6.6 0 0 0-.6.5l-.3 2.4a7 7 0 0 0-2.2 1.2l-2.3-.9a.6.6 0 0 0-.73.26L2 8.58a.6.6 0 0 0 .14.77l2 1.5a7.1 7.1 0 0 0 0 2.4l-2 1.5a.6.6 0 0 0-.14.77l1.9 3.2c.16.26.48.37.74.26l2.3-.9a7 7 0 0 0 2.2 1.2l.3 2.4c.04.29.28.5.6.5h3.8c.3 0 .55-.22.6-.51l.3-2.39a7.1 7.1 0 0 0 2.2-1.21l2.29.9c.27.11.58 0 .74-.26l1.9-3.2a.6.6 0 0 0-.14-.77l-2-1.5c.07-.38.1-.78.1-1.19Z"
-    />
-  </Icon>
-);
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
@@ -804,7 +796,7 @@ export default function AdminDashboard() {
         <Spacer />
         <IconButton
           aria-label="Open settings"
-          icon={<SettingsGearIcon />}
+          icon={<Image src={settingsIcon} alt="Settings" boxSize="22px" />}
           variant="outline"
           colorScheme="yellow"
           onClick={() => {
@@ -952,8 +944,7 @@ export default function AdminDashboard() {
                 colorScheme="yellow"
                 onClick={() => setIsEditingSettings((v) => !v)}
               >
-                {/* {isEditingSettings ? "Done" : "Edit"} */}
-                "Editing is manual for now, contact Savvy to change one of these."
+                {isEditingSettings ? "Done" : "Edit"}
               </Button>
             )}
             <Button size="sm" variant="ghost" onClick={() => setShowSettings(false)}>
