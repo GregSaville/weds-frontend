@@ -14,9 +14,6 @@ import {
   VStack,
   FieldRoot as FormControl,
   FieldLabel as FormLabel,
-  SwitchRoot,
-  SwitchControl,
-  SwitchThumb,
   IconButton,
   Icon,
 } from "@chakra-ui/react";
@@ -63,11 +60,12 @@ const InfoStat = ({ label, value }) => {
   );
 };
 
-const SettingsHamburgerIcon = (props) => (
+const SettingsGearIcon = (props) => (
   <Icon viewBox="0 0 24 24" boxSize="22px" {...props}>
-    <rect x="4" y="6" width="16" height="2.4" rx="1.2" fill="currentColor" />
-    <rect x="4" y="10.8" width="16" height="2.4" rx="1.2" fill="currentColor" />
-    <rect x="4" y="15.6" width="16" height="2.4" rx="1.2" fill="currentColor" />
+    <path
+      fill="currentColor"
+      d="M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Zm9.1 2.8a7.1 7.1 0 0 0-.1-1.2l2-1.5a.6.6 0 0 0 .14-.77l-1.9-3.2a.6.6 0 0 0-.73-.26l-2.3.9a7.1 7.1 0 0 0-2.2-1.2l-.3-2.4a.6.6 0 0 0-.6-.51H9.9a.6.6 0 0 0-.6.5l-.3 2.4a7 7 0 0 0-2.2 1.2l-2.3-.9a.6.6 0 0 0-.73.26L2 8.58a.6.6 0 0 0 .14.77l2 1.5a7.1 7.1 0 0 0 0 2.4l-2 1.5a.6.6 0 0 0-.14.77l1.9 3.2c.16.26.48.37.74.26l2.3-.9a7 7 0 0 0 2.2 1.2l.3 2.4c.04.29.28.5.6.5h3.8c.3 0 .55-.22.6-.51l.3-2.39a7.1 7.1 0 0 0 2.2-1.21l2.29.9c.27.11.58 0 .74-.26l1.9-3.2a.6.6 0 0 0-.14-.77l-2-1.5c.07-.38.1-.78.1-1.19Z"
+    />
   </Icon>
 );
 
@@ -239,16 +237,6 @@ export default function AdminDashboard() {
       saveSettings(nextSettings, prevSettings);
       return nextSettings;
     });
-  };
-
-  const toggleSetting = (key, checkedValue) => {
-    const next =
-      typeof checkedValue === "boolean"
-        ? checkedValue
-        : typeof checkedValue === "object" && checkedValue !== null
-          ? checkedValue.checked ?? checkedValue.target?.checked ?? !settings[key]
-          : !settings[key];
-    setSettingValue(key, next);
   };
 
   const fmt = (ts) => {
@@ -816,7 +804,7 @@ export default function AdminDashboard() {
         <Spacer />
         <IconButton
           aria-label="Open settings"
-          icon={<SettingsHamburgerIcon />}
+          icon={<SettingsGearIcon />}
           variant="outline"
           colorScheme="yellow"
           onClick={() => {
@@ -985,17 +973,26 @@ export default function AdminDashboard() {
                   Prevent all new submissions.
                 </Text>
                 {isEditingSettings ? (
-                  <SwitchRoot
-                    size="lg"
-                    checked={settings.rsvpClosed}
-                    onCheckedChange={(details) => toggleSetting("rsvpClosed", details)}
-                    disabled={settingsSaving}
-                    colorPalette="yellow"
-                  >
-                    <SwitchControl>
-                      <SwitchThumb />
-                    </SwitchControl>
-                  </SwitchRoot>
+                  <HStack spacing={4}>
+                    <Button
+                      size="sm"
+                      variant={settings.rsvpClosed ? "outline" : "solid"}
+                      colorScheme="green"
+                      onClick={() => setSettingValue("rsvpClosed", false)}
+                      isDisabled={settingsSaving}
+                    >
+                      Open
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={settings.rsvpClosed ? "solid" : "outline"}
+                      colorScheme="red"
+                      onClick={() => setSettingValue("rsvpClosed", true)}
+                      isDisabled={settingsSaving}
+                    >
+                      Closed
+                    </Button>
+                  </HStack>
                 ) : (
                   <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
                 )}
@@ -1014,17 +1011,26 @@ export default function AdminDashboard() {
                   Let anyone RSVP without an invite token.
                 </Text>
                 {isEditingSettings ? (
-                  <SwitchRoot
-                    size="lg"
-                    checked={settings.rsvpOpenToStrangers}
-                    onCheckedChange={(details) => toggleSetting("rsvpOpenToStrangers", details)}
-                    disabled={settingsSaving}
-                    colorPalette="yellow"
-                  >
-                    <SwitchControl>
-                      <SwitchThumb />
-                    </SwitchControl>
-                  </SwitchRoot>
+                  <HStack spacing={4}>
+                    <Button
+                      size="sm"
+                      variant={settings.rsvpOpenToStrangers ? "outline" : "solid"}
+                      colorScheme="blue"
+                      onClick={() => setSettingValue("rsvpOpenToStrangers", false)}
+                      isDisabled={settingsSaving}
+                    >
+                      Invite required
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={settings.rsvpOpenToStrangers ? "solid" : "outline"}
+                      colorScheme="green"
+                      onClick={() => setSettingValue("rsvpOpenToStrangers", true)}
+                      isDisabled={settingsSaving}
+                    >
+                      Anyone
+                    </Button>
+                  </HStack>
                 ) : (
                   <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
                 )}
