@@ -62,11 +62,23 @@ const InfoStat = ({ label, value }) => {
   );
 };
 
-const HamburgerIcon = () => (
-  <Box as="span" display="inline-flex" flexDirection="column" justifyContent="center" gap="4px">
-    <Box w="18px" h="2px" bg="currentColor" borderRadius="full" />
-    <Box w="18px" h="2px" bg="currentColor" borderRadius="full" />
-    <Box w="18px" h="2px" bg="currentColor" borderRadius="full" />
+const SettingsHamburgerIcon = () => (
+  <Box
+    as="span"
+    display="inline-flex"
+    alignItems="center"
+    justifyContent="center"
+    w="26px"
+    h="26px"
+    borderWidth="1px"
+    borderRadius="md"
+    borderColor="currentColor"
+  >
+    <Box display="inline-flex" flexDirection="column" justifyContent="center" gap="4px">
+      <Box w="16px" h="2px" bg="currentColor" borderRadius="full" />
+      <Box w="16px" h="2px" bg="currentColor" borderRadius="full" />
+      <Box w="16px" h="2px" bg="currentColor" borderRadius="full" />
+    </Box>
   </Box>
 );
 
@@ -213,7 +225,7 @@ export default function AdminDashboard() {
     }
   }, [view, reloadRsvps, loadExpected]);
 
-  const saveSettings = async (nextSettings) => {
+  const saveSettings = async (nextSettings, fallbackSettings) => {
     setSettingsSaving(true);
     try {
       const res = await axios.post(`${adminBase}/settings`, nextSettings, {
@@ -222,6 +234,9 @@ export default function AdminDashboard() {
       setSettings(res.data || nextSettings);
       showToast("Settings updated", "success");
     } catch (err) {
+      if (fallbackSettings) {
+        setSettings(fallbackSettings);
+      }
       showToast(`Failed to update settings: ${err.response?.data?.message || err.message}`, "error");
     } finally {
       setSettingsSaving(false);
@@ -229,8 +244,12 @@ export default function AdminDashboard() {
   };
 
   const toggleSetting = (key) => {
-    const nextSettings = { ...settings, [key]: !settings[key] };
-    saveSettings(nextSettings);
+    setSettings((prev) => {
+      const prevSettings = prev;
+      const nextSettings = { ...prev, [key]: !prev[key] };
+      saveSettings(nextSettings, prevSettings);
+      return nextSettings;
+    });
   };
 
   const fmt = (ts) => {
@@ -795,7 +814,7 @@ export default function AdminDashboard() {
         <Spacer />
         <IconButton
           aria-label="Open settings"
-          icon={<HamburgerIcon />}
+          icon={<SettingsHamburgerIcon />}
           variant="outline"
           colorScheme="yellow"
           onClick={() => {
