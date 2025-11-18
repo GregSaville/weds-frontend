@@ -49,6 +49,24 @@ const SettingsGlyph = (props) => (
   </Box>
 );
 
+const CloseGlyph = (props) => (
+  <Box as="span" display="inline-flex" {...props}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  </Box>
+);
+
 const getStatusMeta = (status) => {
   if (!status) return { label: "Pending", scheme: "gray" };
   const key = String(status).toUpperCase();
@@ -440,6 +458,240 @@ export default function AdminDashboard() {
   const additionalGuestCount = Array.isArray(selectedRsvp?.additionalGuests) ? selectedRsvp.additionalGuests.length : 0;
   const totalGuestsResponding = selectedRsvp ? 1 + additionalGuestCount : 0;
 
+  const rsvpDetailContent =
+    selectedRsvp || rsvpDetailLoading || activeRsvpId
+      ? (
+          <Box borderWidth="1px" borderRadius="lg" p={5} bg="white" position="relative">
+            <IconButton
+              size="sm"
+              aria-label="Clear selection"
+              icon={<CloseGlyph />}
+              variant="ghost"
+              position="absolute"
+              top={3}
+              right={3}
+              onClick={handleClearRsvpSelection}
+              isDisabled={!selectedRsvp && !rsvpDetailLoading}
+            />
+            <HStack justify="space-between" align="flex-start" flexWrap="wrap" gap={3}>
+              <VStack align="flex-start" spacing={1}>
+                <Text fontSize="sm" color="gray.500">
+                  RSVP Detail
+                </Text>
+                <HStack spacing={3} flexWrap="wrap">
+                  <Heading size="md">{selectedRsvp ? formatName(selectedRsvp.name) : "Loading RSVP..."}</Heading>
+                  {selectedRsvp && <StatusTag status={selectedRsvp.status} size="md" />}
+                  {selectedRsvp?.approvalStatus && <StatusTag status={selectedRsvp.approvalStatus} size="md" />}
+                </HStack>
+                {selectedRsvp?.createdAt && (
+                  <Text fontSize="xs" color="gray.500">
+                    Submitted {fmt(selectedRsvp.createdAt)}
+                  </Text>
+                )}
+              </VStack>
+              <Stack direction={{ base: "column", md: "row" }} spacing={2} align="flex-start">
+                <Button
+                  colorScheme={(selectedRsvp?.approvalStatus || "PENDING_REVIEW").toUpperCase() === "APPROVED" ? "green" : "blue"}
+                  variant="solid"
+                  onClick={() => updateApprovalAndSave("APPROVED")}
+                  isDisabled={!selectedRsvp || isEditingRsvp}
+                  isLoading={rsvpSaving}
+                >
+                  Mark Approved
+                </Button>
+                <Button
+                  colorScheme="yellow"
+                  variant="outline"
+                  onClick={() => updateApprovalAndSave("PENDING_REVIEW")}
+                  isDisabled={!selectedRsvp || isEditingRsvp}
+                  isLoading={rsvpSaving}
+                >
+                  Mark Pending Review
+                </Button>
+                <Button
+                  colorScheme="red"
+                  variant="ghost"
+                  onClick={() => selectedRsvp && deleteRsvp(selectedRsvp)}
+                  isDisabled={!selectedRsvp || rsvpDetailLoading}
+                >
+                  Delete RSVP
+                </Button>
+              </Stack>
+            </HStack>
+            <Separator mt={3} />
+            {selectedRsvp && (selectedRsvp.approvalStatus || "PENDING_REVIEW").toUpperCase() === "PENDING_REVIEW" && (
+              <Box mt={3} p={3} borderWidth="1px" borderRadius="md" bg="orange.50" borderColor="orange.200">
+                <Text fontWeight="600" color="orange.800">
+                  Pending Review
+                </Text>
+                <Text fontSize="sm" color="orange.700">
+                  This RSVP is waiting for approval. Approve it to include in accepted counts.
+                </Text>
+              </Box>
+            )}
+            {rsvpDetailLoading ? (
+              <Flex minH="200px" align="center" justify="center">
+                <Text>Loading RSVP...</Text>
+              </Flex>
+            ) : selectedRsvp ? (
+              <VStack align="stretch" spacing={6} mt={4}>
+                <Box>
+                  <Heading size="sm" color="teal.700">
+                    Guest Overview
+                  </Heading>
+                  <Separator mt={1} />
+                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mt={4}>
+                    <InfoStat label="Primary Guest" value={formatName(selectedRsvp.name)} />
+                    <InfoStat label="Guests Responding" value={totalGuestsResponding ? totalGuestsResponding.toString() : "-"} />
+                    <InfoStat label="Email" value={selectedRsvp.email || "-"} />
+                    <InfoStat label="Phone" value={selectedRsvp.phone || "-"} />
+                    <InfoStat label="Approval" value={selectedRsvp.approvalStatus || "Pending Review"} />
+                  </SimpleGrid>
+                </Box>
+
+                <Box>
+                  <Heading size="sm" color="teal.700">
+                    Message
+                  </Heading>
+                  <Separator mt={1} />
+                  <Text mt={3} color={selectedRsvp.message ? "gray.800" : "gray.500"}>
+                    {selectedRsvp.message || "No personal message was included."}
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Heading size="sm" color="teal.700">
+                    Address
+                  </Heading>
+                  <Separator mt={1} />
+                  <Text mt={3} color={selectedRsvp.address ? "gray.800" : "gray.500"}>
+                    {formatAddress(selectedRsvp.address)}
+                  </Text>
+                </Box>
+
+                {selectedRsvp.specialAccommodations && (
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Special Accommodations
+                    </Heading>
+                    <Separator mt={1} />
+                    <Text mt={3}>{selectedRsvp.specialAccommodations}</Text>
+                  </Box>
+                )}
+
+                {additionalGuestCount > 0 && (
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Additional Guests ({additionalGuestCount})
+                    </Heading>
+                    <Separator mt={1} />
+                    <Stack mt={4} spacing={3}>
+                      {selectedRsvp.additionalGuests.map((guest, idx) => (
+                        <Box key={idx} p={3} borderWidth="1px" borderRadius="md" bg="gray.50">
+                          <Text fontWeight="600">
+                            {`${guest.firstName || ""} ${guest.lastName || ""}`.trim() || `Guest ${idx + 1}`}
+                          </Text>
+                          {guest.specialAccommodations && (
+                            <Text fontSize="sm" color="gray.600">
+                              {guest.specialAccommodations}
+                            </Text>
+                          )}
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+
+                {isEditingRsvp && (
+                  <Box>
+                    <Heading size="sm" color="teal.700">
+                      Update RSVP
+                    </Heading>
+                    <Separator mt={1} />
+                    <VStack align="stretch" spacing={4} mt={4}>
+                      <FormControl>
+                        <FormLabel fontSize="sm">Response Status</FormLabel>
+                        <Stack direction="row" flexWrap="wrap" spacing={2}>
+                          {RSVP_STATUS_ORDER.map((statusKey) => (
+                            <Button
+                              key={statusKey}
+                              size="sm"
+                              variant={String(selectedRsvp.status || "").toUpperCase() === statusKey ? "solid" : "outline"}
+                              colorScheme={getStatusMeta(statusKey).scheme}
+                              onClick={() => handleStatusChange(statusKey)}
+                            >
+                              {getStatusMeta(statusKey).label}
+                            </Button>
+                          ))}
+                        </Stack>
+                      </FormControl>
+                      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Email</FormLabel>
+                          <Input value={selectedRsvp.email || ""} onChange={(e) => updateRsvpField("email", e.target.value)} placeholder="Email address" />
+                        </FormControl>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Phone</FormLabel>
+                          <Input value={selectedRsvp.phone || ""} onChange={(e) => updateRsvpField("phone", e.target.value)} placeholder="Phone number" />
+                        </FormControl>
+                      </SimpleGrid>
+                      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Address Line 1</FormLabel>
+                          <Input value={selectedRsvp.address?.line1 || ""} onChange={(e) => updateAddressField("line1", e.target.value)} placeholder="Street address" />
+                        </FormControl>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Address Line 2</FormLabel>
+                          <Input value={selectedRsvp.address?.line2 || ""} onChange={(e) => updateAddressField("line2", e.target.value)} placeholder="Apartment, suite, etc." />
+                        </FormControl>
+                      </SimpleGrid>
+                      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                        <FormControl>
+                          <FormLabel fontSize="sm">City</FormLabel>
+                          <Input value={selectedRsvp.address?.city || ""} onChange={(e) => updateAddressField("city", e.target.value)} placeholder="City" />
+                        </FormControl>
+                        <FormControl>
+                          <FormLabel fontSize="sm">State / Province</FormLabel>
+                          <Input value={selectedRsvp.address?.state || ""} onChange={(e) => updateAddressField("state", e.target.value)} placeholder="State" />
+                        </FormControl>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Postal Code</FormLabel>
+                          <Input value={selectedRsvp.address?.postalCode || ""} onChange={(e) => updateAddressField("postalCode", e.target.value)} placeholder="Postal code" />
+                        </FormControl>
+                      </SimpleGrid>
+                      <FormControl>
+                        <FormLabel fontSize="sm">Message</FormLabel>
+                        <Textarea value={selectedRsvp.message || ""} onChange={(e) => updateRsvpField("message", e.target.value)} placeholder="Add an internal note" rows={4} />
+                      </FormControl>
+                    </VStack>
+                  </Box>
+                )}
+              </VStack>
+            ) : null}
+            {selectedRsvp && !rsvpDetailLoading && (
+              <Flex justify="flex-end" gap={3} flexWrap="wrap" mt={4}>
+                {isEditingRsvp ? (
+                  <>
+                    <Button variant="ghost" onClick={handleCancelEdit} isDisabled={rsvpSaving}>
+                      Cancel
+                    </Button>
+                    <Button colorScheme="yellow" onClick={() => saveRsvpDetail()} isLoading={rsvpSaving}>
+                      Save Changes
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button colorScheme="yellow" onClick={() => setIsEditingRsvp(true)}>
+                      Edit RSVP
+                    </Button>
+                  </>
+                )}
+              </Flex>
+            )}
+          </Box>
+        )
+      : null;
+
   useEffect(() => {
     if (view !== "rsvps") {
       setSelectedRsvp(null);
@@ -609,233 +861,8 @@ export default function AdminDashboard() {
               fmt={fmt}
               deleteRsvp={deleteRsvp}
               selectedRsvpId={activeRsvpId}
+              detailContent={rsvpDetailContent}
             />
-
-            {(selectedRsvp || rsvpDetailLoading || activeRsvpId) && (
-              <Box borderWidth="1px" borderRadius="lg" p={5} bg="white">
-                <HStack justify="space-between" align="flex-start" flexWrap="wrap" gap={3}>
-                  <VStack align="flex-start" spacing={1}>
-                    <Text fontSize="sm" color="gray.500">
-                      RSVP Detail
-                    </Text>
-                    <HStack spacing={3} flexWrap="wrap">
-                      <Heading size="md">{selectedRsvp ? formatName(selectedRsvp.name) : "Loading RSVP..."}</Heading>
-                      {selectedRsvp && <StatusTag status={selectedRsvp.status} size="md" />}
-                      {selectedRsvp?.approvalStatus && <StatusTag status={selectedRsvp.approvalStatus} size="md" />}
-                    </HStack>
-                    {selectedRsvp?.createdAt && (
-                      <Text fontSize="xs" color="gray.500">
-                        Submitted {fmt(selectedRsvp.createdAt)}
-                      </Text>
-                    )}
-                  </VStack>
-                  <Stack direction={{ base: "column", md: "row" }} spacing={2} align="flex-start">
-                    <Button variant="outline" onClick={handleClearRsvpSelection} isDisabled={!selectedRsvp && !rsvpDetailLoading}>
-                      Clear selection
-                    </Button>
-                    <Button
-                      colorScheme={(selectedRsvp?.approvalStatus || "PENDING_REVIEW").toUpperCase() === "APPROVED" ? "green" : "blue"}
-                      variant="solid"
-                      onClick={() => updateApprovalAndSave("APPROVED")}
-                      isDisabled={!selectedRsvp || isEditingRsvp}
-                      isLoading={rsvpSaving}
-                    >
-                      Mark Approved
-                    </Button>
-                    <Button
-                      colorScheme="yellow"
-                      variant="outline"
-                      onClick={() => updateApprovalAndSave("PENDING_REVIEW")}
-                      isDisabled={!selectedRsvp || isEditingRsvp}
-                      isLoading={rsvpSaving}
-                    >
-                      Mark Pending Review
-                    </Button>
-                    <Button
-                      colorScheme="red"
-                      variant="ghost"
-                      onClick={() => selectedRsvp && deleteRsvp(selectedRsvp)}
-                      isDisabled={!selectedRsvp || rsvpDetailLoading}
-                    >
-                      Delete RSVP
-                    </Button>
-                  </Stack>
-                </HStack>
-                <Separator mt={3} />
-                {selectedRsvp && (selectedRsvp.approvalStatus || "PENDING_REVIEW").toUpperCase() === "PENDING_REVIEW" && (
-                  <Box mt={3} p={3} borderWidth="1px" borderRadius="md" bg="orange.50" borderColor="orange.200">
-                    <Text fontWeight="600" color="orange.800">
-                      Pending Review
-                    </Text>
-                    <Text fontSize="sm" color="orange.700">
-                      This RSVP is waiting for approval. Approve it to include in accepted counts.
-                    </Text>
-                  </Box>
-                )}
-                {rsvpDetailLoading ? (
-                  <Flex minH="200px" align="center" justify="center">
-                    <Text>Loading RSVP...</Text>
-                  </Flex>
-                ) : selectedRsvp ? (
-                  <VStack align="stretch" spacing={6} mt={4}>
-                    <Box>
-                      <Heading size="sm" color="teal.700">
-                        Guest Overview
-                      </Heading>
-                      <Separator mt={1} />
-                      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mt={4}>
-                        <InfoStat label="Primary Guest" value={formatName(selectedRsvp.name)} />
-                        <InfoStat label="Guests Responding" value={totalGuestsResponding ? totalGuestsResponding.toString() : "-"} />
-                        <InfoStat label="Email" value={selectedRsvp.email || "-"} />
-                        <InfoStat label="Phone" value={selectedRsvp.phone || "-"} />
-                        <InfoStat label="Approval" value={selectedRsvp.approvalStatus || "Pending Review"} />
-                      </SimpleGrid>
-                    </Box>
-
-                    <Box>
-                      <Heading size="sm" color="teal.700">
-                        Message
-                      </Heading>
-                      <Separator mt={1} />
-                      <Text mt={3} color={selectedRsvp.message ? "gray.800" : "gray.500"}>
-                        {selectedRsvp.message || "No personal message was included."}
-                      </Text>
-                    </Box>
-
-                    <Box>
-                      <Heading size="sm" color="teal.700">
-                        Address
-                      </Heading>
-                      <Separator mt={1} />
-                      <Text mt={3} color={selectedRsvp.address ? "gray.800" : "gray.500"}>
-                        {formatAddress(selectedRsvp.address)}
-                      </Text>
-                    </Box>
-
-                    {selectedRsvp.specialAccommodations && (
-                      <Box>
-                        <Heading size="sm" color="teal.700">
-                          Special Accommodations
-                        </Heading>
-                        <Separator mt={1} />
-                        <Text mt={3}>{selectedRsvp.specialAccommodations}</Text>
-                      </Box>
-                    )}
-
-                    {additionalGuestCount > 0 && (
-                      <Box>
-                        <Heading size="sm" color="teal.700">
-                          Additional Guests ({additionalGuestCount})
-                        </Heading>
-                        <Separator mt={1} />
-                        <Stack mt={4} spacing={3}>
-                          {selectedRsvp.additionalGuests.map((guest, idx) => (
-                            <Box key={idx} p={3} borderWidth="1px" borderRadius="md" bg="gray.50">
-                              <Text fontWeight="600">
-                                {`${guest.firstName || ""} ${guest.lastName || ""}`.trim() || `Guest ${idx + 1}`}
-                              </Text>
-                              {guest.specialAccommodations && (
-                                <Text fontSize="sm" color="gray.600">
-                                  {guest.specialAccommodations}
-                                </Text>
-                              )}
-                            </Box>
-                          ))}
-                        </Stack>
-                      </Box>
-                    )}
-
-                    {isEditingRsvp && (
-                      <Box>
-                        <Heading size="sm" color="teal.700">
-                          Update RSVP
-                        </Heading>
-                        <Separator mt={1} />
-                        <VStack align="stretch" spacing={4} mt={4}>
-                          <FormControl>
-                            <FormLabel fontSize="sm">Response Status</FormLabel>
-                            <Stack direction="row" flexWrap="wrap" spacing={2}>
-                              {RSVP_STATUS_ORDER.map((statusKey) => (
-                                <Button
-                                  key={statusKey}
-                                  size="sm"
-                                  variant={String(selectedRsvp.status || "").toUpperCase() === statusKey ? "solid" : "outline"}
-                                  colorScheme={getStatusMeta(statusKey).scheme}
-                                  onClick={() => handleStatusChange(statusKey)}
-                                >
-                                  {getStatusMeta(statusKey).label}
-                                </Button>
-                              ))}
-                            </Stack>
-                          </FormControl>
-                          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                            <FormControl>
-                              <FormLabel fontSize="sm">Email</FormLabel>
-                              <Input value={selectedRsvp.email || ""} onChange={(e) => updateRsvpField("email", e.target.value)} placeholder="Email address" />
-                            </FormControl>
-                            <FormControl>
-                              <FormLabel fontSize="sm">Phone</FormLabel>
-                              <Input value={selectedRsvp.phone || ""} onChange={(e) => updateRsvpField("phone", e.target.value)} placeholder="Phone number" />
-                            </FormControl>
-                          </SimpleGrid>
-                          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                            <FormControl>
-                              <FormLabel fontSize="sm">Address Line 1</FormLabel>
-                              <Input value={selectedRsvp.address?.line1 || ""} onChange={(e) => updateAddressField("line1", e.target.value)} placeholder="Street address" />
-                            </FormControl>
-                            <FormControl>
-                              <FormLabel fontSize="sm">Address Line 2</FormLabel>
-                              <Input value={selectedRsvp.address?.line2 || ""} onChange={(e) => updateAddressField("line2", e.target.value)} placeholder="Apartment, suite, etc." />
-                            </FormControl>
-                          </SimpleGrid>
-                          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-                            <FormControl>
-                              <FormLabel fontSize="sm">City</FormLabel>
-                              <Input value={selectedRsvp.address?.city || ""} onChange={(e) => updateAddressField("city", e.target.value)} placeholder="City" />
-                            </FormControl>
-                            <FormControl>
-                              <FormLabel fontSize="sm">State / Province</FormLabel>
-                              <Input value={selectedRsvp.address?.state || ""} onChange={(e) => updateAddressField("state", e.target.value)} placeholder="State" />
-                            </FormControl>
-                            <FormControl>
-                              <FormLabel fontSize="sm">Postal Code</FormLabel>
-                              <Input value={selectedRsvp.address?.postalCode || ""} onChange={(e) => updateAddressField("postalCode", e.target.value)} placeholder="Postal code" />
-                            </FormControl>
-                          </SimpleGrid>
-                          <FormControl>
-                            <FormLabel fontSize="sm">Message</FormLabel>
-                            <Textarea value={selectedRsvp.message || ""} onChange={(e) => updateRsvpField("message", e.target.value)} placeholder="Add an internal note" rows={4} />
-                          </FormControl>
-                        </VStack>
-                      </Box>
-                    )}
-                  </VStack>
-                ) : null}
-                {selectedRsvp && !rsvpDetailLoading && (
-                  <Flex justify="flex-end" gap={3} flexWrap="wrap" mt={4}>
-                    {isEditingRsvp ? (
-                      <>
-                        <Button variant="ghost" onClick={handleCancelEdit} isDisabled={rsvpSaving}>
-                          Cancel
-                        </Button>
-                        <Button colorScheme="yellow" onClick={() => saveRsvpDetail()} isLoading={rsvpSaving}>
-                          Save Changes
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button variant="outline" onClick={handleClearRsvpSelection}>
-                          Close Detail
-                        </Button>
-                        <Button colorScheme="yellow" onClick={() => setIsEditingRsvp(true)}>
-                          Edit RSVP
-                        </Button>
-                      </>
-                    )}
-                  </Flex>
-                )}
-              </Box>
-            )}
           </Stack>
         )}
 

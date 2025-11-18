@@ -1,7 +1,7 @@
 import { Box, Button, Heading, Stack, Table, Text, useBreakpointValue } from "@chakra-ui/react";
 import StatusTag from "./StatusTag";
 
-export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, deleteRsvp, selectedRsvpId }) {
+export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, deleteRsvp, selectedRsvpId, detailContent }) {
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   const renderMobile = () => {
@@ -47,6 +47,11 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
                 >
                   Delete
                 </Button>
+                {selectedRsvpId === r.id && detailContent && (
+                  <Box mt={2} borderWidth="1px" borderRadius="md" p={3} bg="yellow.50">
+                    {detailContent}
+                  </Box>
+                )}
               </Stack>
             </Box>
           );
@@ -74,11 +79,11 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
       );
     }
 
-    return rsvps.map((r) => {
+    return rsvps.flatMap((r) => {
       const approval = (r.approvalStatus || "PENDING_REVIEW").toUpperCase();
       const isPendingReview = approval === "PENDING_REVIEW";
       const rowBg = selectedRsvpId === r.id ? "yellow.50" : isPendingReview ? "orange.50" : undefined;
-      return (
+      return [
         <Table.Row
           key={r.id}
           onClick={() => viewRsvpDetail(r.id)}
@@ -119,8 +124,15 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
               Delete
             </Button>
           </Table.Cell>
-        </Table.Row>
-      );
+        </Table.Row>,
+        selectedRsvpId === r.id && detailContent ? (
+          <Table.Row key={`${r.id}-detail`}>
+            <Table.Cell colSpan={6} p={0} bg="gray.50">
+              <Box p={4}>{detailContent}</Box>
+            </Table.Cell>
+          </Table.Row>
+        ) : null,
+      ].filter(Boolean);
     });
   };
 
