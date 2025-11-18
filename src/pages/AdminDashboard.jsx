@@ -235,12 +235,37 @@ export default function AdminDashboard() {
   const formatAddress = (address) => {
     if (!address) return "-";
     const parts = [
-      address.line1,
-      address.line2,
+      address.streetLine1 || address.line1,
+      address.streetLine2 || address.line2,
       [address.city, address.state].filter(Boolean).join(", "),
       address.postalCode || address.zip,
     ].filter((part) => part && String(part).trim().length > 0);
     return parts.length ? parts.join(", ") : "-";
+  };
+
+  const normalizeAddress = (raw) => {
+    if (!raw) return null;
+    return {
+      streetLine1: raw.streetLine1 ?? raw.line1 ?? raw.addressLine1 ?? "",
+      streetLine2: raw.streetLine2 ?? raw.line2 ?? raw.addressLine2 ?? "",
+      city: raw.city ?? "",
+      state: raw.state ?? "",
+      postalCode: raw.postalCode ?? raw.zip ?? "",
+    };
+  };
+
+  const cleanAddressForSave = (address) => {
+    if (!address) return null;
+    const normalized = normalizeAddress(address);
+    const hasValue = Object.values(normalized).some((v) => v && String(v).trim().length > 0);
+    if (!hasValue) return null;
+    return {
+      streetLine1: normalized.streetLine1 || null,
+      streetLine2: normalized.streetLine2 || null,
+      city: normalized.city || null,
+      state: normalized.state || null,
+      postalCode: normalized.postalCode || null,
+    };
   };
 
   const handleLogout = () => {
@@ -359,7 +384,7 @@ export default function AdminDashboard() {
       const res = await axios.get(`${adminBase}/rsvps/${id}`, {
         headers: { Authorization: getAuthHeader() },
       });
-      setSelectedRsvp(res.data);
+      setSelectedRsvp(res.data ? { ...res.data, address: normalizeAddress(res.data.address) } : res.data);
       setIsEditingRsvp(false);
     } catch (err) {
       showToast(`Failed to load RSVP: ${err.response?.data?.message || err.message}`, "error");
@@ -429,10 +454,14 @@ export default function AdminDashboard() {
               aria-label="Clear selection"
               variant="ghost"
               position="absolute"
-              top={3}
-              right={3}
+              top={{ base: 2, md: 3 }}
+              right={{ base: 2, md: 3 }}
               minW="24px"
+              px={2}
+              py={1}
               fontWeight="700"
+              bg="white"
+              _hover={{ bg: "gray.100" }}
               onClick={handleClearRsvpSelection}
               isDisabled={!selectedRsvp && !rsvpDetailLoading}
             >
@@ -593,14 +622,14 @@ export default function AdminDashboard() {
                         </FormControl>
                       </SimpleGrid>
                       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                        <FormControl>
-                          <FormLabel fontSize="sm">Address Line 1</FormLabel>
-                          <Input value={selectedRsvp.address?.line1 || ""} onChange={(e) => updateAddressField("line1", e.target.value)} placeholder="Street address" />
-                        </FormControl>
-                        <FormControl>
-                          <FormLabel fontSize="sm">Address Line 2</FormLabel>
-                          <Input value={selectedRsvp.address?.line2 || ""} onChange={(e) => updateAddressField("line2", e.target.value)} placeholder="Apartment, suite, etc." />
-                        </FormControl>
+                          <FormControl>
+                            <FormLabel fontSize="sm">Address Line 1</FormLabel>
+                            <Input value={selectedRsvp.address?.streetLine1 || ""} onChange={(e) => updateAddressField("streetLine1", e.target.value)} placeholder="Street address" />
+                          </FormControl>
+                          <FormControl>
+                            <FormLabel fontSize="sm">Address Line 2</FormLabel>
+                            <Input value={selectedRsvp.address?.streetLine2 || ""} onChange={(e) => updateAddressField("streetLine2", e.target.value)} placeholder="Apartment, suite, etc." />
+                          </FormControl>
                       </SimpleGrid>
                       <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
                         <FormControl>
@@ -674,14 +703,14 @@ export default function AdminDashboard() {
         approvalStatus: overrides.approvalStatus ?? selectedRsvp.approvalStatus ?? null,
         email: overrides.email ?? selectedRsvp.email ?? null,
         phone: overrides.phone ?? selectedRsvp.phone ?? null,
-        address: overrides.address ?? selectedRsvp.address ?? null,
+        address: cleanAddressForSave(overrides.address ?? selectedRsvp.address),
         additionalGuests: overrides.additionalGuests ?? selectedRsvp.additionalGuests ?? null,
         message: overrides.message ?? selectedRsvp.message ?? null,
       };
       const res = await axios.post(`${adminBase}/rsvps/${selectedRsvp.id}`, body, {
         headers: { Authorization: getAuthHeader(), "Content-Type": "application/json" },
       });
-      setSelectedRsvp(res.data);
+      setSelectedRsvp(res.data ? { ...res.data, address: normalizeAddress(res.data.address) } : res.data);
       setActiveRsvpId(res.data?.id ?? selectedRsvp.id);
       setIsEditingRsvp(false);
       // refresh list lightly
