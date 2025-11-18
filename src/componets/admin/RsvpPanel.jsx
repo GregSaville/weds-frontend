@@ -64,7 +64,7 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
     if (rsvpsLoading) {
       return (
         <Table.Row>
-          <Table.Cell colSpan={6}>Loading RSVPs...</Table.Cell>
+          <Table.Cell colSpan={5}>Loading RSVPs...</Table.Cell>
         </Table.Row>
       );
     }
@@ -72,7 +72,7 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
     if (!rsvps.length) {
       return (
         <Table.Row>
-          <Table.Cell colSpan={6}>
+          <Table.Cell colSpan={5}>
             <Text color="gray.600">No RSVPs have been submitted yet.</Text>
           </Table.Cell>
         </Table.Row>
@@ -111,23 +111,10 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
             {r.message ? `${String(r.message).slice(0, 48)}${String(r.message).length > 48 ? "..." : ""}` : "-"}
           </Table.Cell>
           <Table.Cell>{fmt(r.createdAt)}</Table.Cell>
-          <Table.Cell>
-            <Button
-              size="sm"
-              colorScheme="red"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteRsvp(r);
-              }}
-            >
-              Delete
-            </Button>
-          </Table.Cell>
         </Table.Row>,
         selectedRsvpId === r.id && detailContent ? (
           <Table.Row key={`${r.id}-detail`}>
-            <Table.Cell colSpan={6} p={0} bg="gray.50">
+            <Table.Cell colSpan={5} p={0} bg="gray.50">
               <Box p={4}>{detailContent}</Box>
             </Table.Cell>
           </Table.Row>
@@ -151,11 +138,10 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
                 <Table.ColumnHeader>Name</Table.ColumnHeader>
                 <Table.ColumnHeader>Status</Table.ColumnHeader>
                 <Table.ColumnHeader>Review Status</Table.ColumnHeader>
-                <Table.ColumnHeader>Message</Table.ColumnHeader>
-                <Table.ColumnHeader>Created</Table.ColumnHeader>
-                <Table.ColumnHeader>Actions</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
+              <Table.ColumnHeader>Message</Table.ColumnHeader>
+              <Table.ColumnHeader>Created</Table.ColumnHeader>
+            </Table.Row>
+          </Table.Header>
             <Table.Body>{renderRows()}</Table.Body>
           </Table.Root>
         </Box>

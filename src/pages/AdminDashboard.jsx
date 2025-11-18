@@ -473,14 +473,6 @@ export default function AdminDashboard() {
                 >
                   Mark Pending Review
                 </Button>
-                <Button
-                  colorScheme="red"
-                  variant="ghost"
-                  onClick={() => selectedRsvp && deleteRsvp(selectedRsvp)}
-                  isDisabled={!selectedRsvp || rsvpDetailLoading}
-                >
-                  Delete RSVP
-                </Button>
               </Stack>
             </HStack>
             <Separator mt={3} />
@@ -648,6 +640,14 @@ export default function AdminDashboard() {
                   <>
                     <Button colorScheme="yellow" onClick={() => setIsEditingRsvp(true)}>
                       Edit RSVP
+                    </Button>
+                    <Button
+                      colorScheme="red"
+                      variant="ghost"
+                      onClick={() => selectedRsvp && deleteRsvp(selectedRsvp)}
+                      isDisabled={!selectedRsvp || rsvpDetailLoading}
+                    >
+                      Delete RSVP
                     </Button>
                   </>
                 )}
