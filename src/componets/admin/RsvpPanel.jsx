@@ -136,7 +136,7 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Name</Table.ColumnHeader>
-                <Table.ColumnHeader>Status</Table.ColumnHeader>
+                <Table.ColumnHeader>Response</Table.ColumnHeader>
                 <Table.ColumnHeader>Review Status</Table.ColumnHeader>
               <Table.ColumnHeader>Message</Table.ColumnHeader>
               <Table.ColumnHeader>Created</Table.ColumnHeader>

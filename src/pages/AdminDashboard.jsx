@@ -549,7 +549,7 @@ export default function AdminDashboard() {
                   Pending Review
                 </Text>
                 <Text fontSize="sm" color="orange.700">
-                  This RSVP is waiting for approval. Approve it to include in accepted counts.
+                  This RSVP is waiting for approval. Approve it to include in expected turnout, if declined they will just be filtered to below the pending review rsvps.
                 </Text>
               </Box>
             )}
@@ -952,7 +952,8 @@ export default function AdminDashboard() {
                 colorScheme="yellow"
                 onClick={() => setIsEditingSettings((v) => !v)}
               >
-                {isEditingSettings ? "Done" : "Edit"}
+                {/* {isEditingSettings ? "Done" : "Edit"} */}
+                "Editing is manual for now, contact Savvy to change one of these."
               </Button>
             )}
             <Button size="sm" variant="ghost" onClick={() => setShowSettings(false)}>

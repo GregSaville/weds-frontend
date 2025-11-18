@@ -3,7 +3,6 @@ import { Badge } from "@chakra-ui/react";
 const STATUS_META = {
   ACCEPTED: { label: "Accepted", palette: "green" },
   DECLINED: { label: "Declined", palette: "red" },
-  WAITLISTED: { label: "Waitlisted", palette: "purple" },
   PENDING: { label: "Pending", palette: "gray" },
   PENDING_REVIEW: { label: "Pending Review", palette: "yellow" },
   APPROVED: { label: "Approved", palette: "blue" },
