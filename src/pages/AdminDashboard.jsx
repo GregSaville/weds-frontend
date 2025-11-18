@@ -17,6 +17,7 @@ import {
   Switch,
   IconButton,
   Image,
+  Slide,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -716,12 +717,10 @@ export default function AdminDashboard() {
   }, [view]);
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.set("tab", view);
-    if (view === "rsvps" && activeRsvpId) {
-      params.set("rsvp", activeRsvpId);
-    }
-    setSearchParams(params);
+    setSearchParams({
+      tab: view,
+      rsvp: view === "rsvps" && activeRsvpId ? activeRsvpId : undefined,
+    });
   }, [view, activeRsvpId, setSearchParams]);
 
   useEffect(() => {
@@ -907,35 +906,50 @@ export default function AdminDashboard() {
         )}
       </Box>
 
-      {showSettings && (
-        <Box borderWidth="1px" borderRadius="lg" p={4} bg="white">
-          <HStack justify="space-between" align="center" mb={3}>
+      <Slide direction="right" in={showSettings} style={{ zIndex: 20 }}>
+        <Box
+          position="fixed"
+          top="0"
+          right="0"
+          h="100vh"
+          maxW="380px"
+          w={{ base: "90vw", sm: "360px" }}
+          bg="white"
+          borderLeftWidth="1px"
+          boxShadow="xl"
+          p={4}
+          overflowY="auto"
+        >
+          <HStack justify="space-between" align="center" mb={4}>
             <Heading size="sm">Settings</Heading>
-            {!settingsLoading && (
-              <Button
-                size="sm"
-                variant={isEditingSettings ? "solid" : "ghost"}
-                colorScheme="yellow"
-                onClick={() => setIsEditingSettings((v) => !v)}
-              >
-                {isEditingSettings ? "Done" : "Edit"}
+            <HStack spacing={2}>
+              {!settingsLoading && (
+                <Button
+                  size="sm"
+                  variant={isEditingSettings ? "solid" : "ghost"}
+                  colorScheme="yellow"
+                  onClick={() => setIsEditingSettings((v) => !v)}
+                >
+                  {isEditingSettings ? "Done" : "Edit"}
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" onClick={() => setShowSettings(false)}>
+                Close
               </Button>
-            )}
+            </HStack>
           </HStack>
           {settingsLoading ? (
             <Text color="gray.600">Loading settings...</Text>
           ) : (
             <VStack align="stretch" spacing={4}>
               <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                <HStack justify="space-between" align="center">
-                  <Box>
-                    <Heading size="sm" color="teal.700">
-                      Close RSVPs
-                    </Heading>
-                    <Text fontSize="sm" color="gray.600">
-                      Prevent all new submissions.
-                    </Text>
-                  </Box>
+                <VStack align="stretch" spacing={3}>
+                  <Heading size="sm" color="teal.700">
+                    Close RSVPs
+                  </Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    Prevent all new submissions.
+                  </Text>
                   {isEditingSettings ? (
                     <Switch
                       size="lg"
@@ -947,22 +961,20 @@ export default function AdminDashboard() {
                   ) : (
                     <StatusTag status={settings.rsvpClosed ? "CLOSED" : "OPEN"} />
                   )}
-                </HStack>
-                <Text mt={2} fontSize="sm" color="gray.600">
-                  Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
-                </Text>
+                  <Text mt={1} fontSize="sm" color="gray.600">
+                    Currently: <b>{settings.rsvpClosed ? "Closed" : "Open"}</b>
+                  </Text>
+                </VStack>
               </Box>
 
               <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                <HStack justify="space-between" align="center">
-                  <Box>
-                    <Heading size="sm" color="teal.700">
-                      Allow Strangers
-                    </Heading>
-                    <Text fontSize="sm" color="gray.600">
-                      Let anyone RSVP without an invite token.
-                    </Text>
-                  </Box>
+                <VStack align="stretch" spacing={3}>
+                  <Heading size="sm" color="teal.700">
+                    Allow Strangers
+                  </Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    Let anyone RSVP without an invite token.
+                  </Text>
                   {isEditingSettings ? (
                     <Switch
                       size="lg"
@@ -974,15 +986,15 @@ export default function AdminDashboard() {
                   ) : (
                     <StatusTag status={settings.rsvpOpenToStrangers ? "ANYONE" : "INVITE"} />
                   )}
-                </HStack>
-                <Text mt={2} fontSize="sm" color="gray.600">
-                  Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
-                </Text>
+                  <Text mt={1} fontSize="sm" color="gray.600">
+                    Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
+                  </Text>
+                </VStack>
               </Box>
             </VStack>
           )}
         </Box>
-      )}
+      </Slide>
 
     </VStack>
   );
