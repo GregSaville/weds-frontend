@@ -18,6 +18,7 @@ import {
   SwitchControl,
   SwitchThumb,
   IconButton,
+  Icon,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -62,24 +63,12 @@ const InfoStat = ({ label, value }) => {
   );
 };
 
-const SettingsHamburgerIcon = () => (
-  <Box
-    as="span"
-    display="inline-flex"
-    alignItems="center"
-    justifyContent="center"
-    w="26px"
-    h="26px"
-    borderWidth="1px"
-    borderRadius="md"
-    borderColor="currentColor"
-  >
-    <Box display="inline-flex" flexDirection="column" justifyContent="center" gap="4px">
-      <Box w="16px" h="2px" bg="currentColor" borderRadius="full" />
-      <Box w="16px" h="2px" bg="currentColor" borderRadius="full" />
-      <Box w="16px" h="2px" bg="currentColor" borderRadius="full" />
-    </Box>
-  </Box>
+const SettingsHamburgerIcon = (props) => (
+  <Icon viewBox="0 0 24 24" boxSize="22px" {...props}>
+    <rect x="4" y="6" width="16" height="2.4" rx="1.2" fill="currentColor" />
+    <rect x="4" y="10.8" width="16" height="2.4" rx="1.2" fill="currentColor" />
+    <rect x="4" y="15.6" width="16" height="2.4" rx="1.2" fill="currentColor" />
+  </Icon>
 );
 
 export default function AdminDashboard() {
@@ -243,13 +232,21 @@ export default function AdminDashboard() {
     }
   };
 
-  const toggleSetting = (key) => {
+  const setSettingValue = (key, value) => {
     setSettings((prev) => {
       const prevSettings = prev;
-      const nextSettings = { ...prev, [key]: !prev[key] };
+      const nextSettings = { ...prev, [key]: value };
       saveSettings(nextSettings, prevSettings);
       return nextSettings;
     });
+  };
+
+  const toggleSetting = (key, checkedValue) => {
+    if (typeof checkedValue === "boolean") {
+      setSettingValue(key, checkedValue);
+      return;
+    }
+    setSettingValue(key, !settings[key]);
   };
 
   const fmt = (ts) => {
@@ -986,7 +983,7 @@ export default function AdminDashboard() {
                   <SwitchRoot
                     size="lg"
                     checked={settings.rsvpClosed}
-                    onCheckedChange={() => toggleSetting("rsvpClosed")}
+                    onCheckedChange={(details) => toggleSetting("rsvpClosed", details?.checked)}
                     disabled={settingsSaving}
                     colorPalette="yellow"
                   >
@@ -1015,7 +1012,7 @@ export default function AdminDashboard() {
                   <SwitchRoot
                     size="lg"
                     checked={settings.rsvpOpenToStrangers}
-                    onCheckedChange={() => toggleSetting("rsvpOpenToStrangers")}
+                    onCheckedChange={(details) => toggleSetting("rsvpOpenToStrangers", details?.checked)}
                     disabled={settingsSaving}
                     colorPalette="yellow"
                   >
