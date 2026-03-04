@@ -167,7 +167,25 @@
   },
   "travel": {
     "title": "Travel",
-    "intro": "Hotel blocks, airport info, and local tips."
+    "intro": "Hotel blocks, airport info, and local tips.",
+    "hotels": [
+      {
+        "details": "Rooms available under the room block: Single King or Double Queen",
+        "reserveBy": "Reservations need to be made by 8/11/2026"
+      },
+      {
+        "details": "Rooms available under the room block: Double Queen",
+        "reserveBy": "Please call to request room under `Hidalgo Wedding` room block by 8/10/2026"
+      },
+      {
+        "details": "Rooms available under the room block: Single King or Double Queen",
+        "reserveBy": "Reservations need to be made by 8/11/2026"
+      },
+      {
+        "details": "Rooms available under the room block: King Suites or Double Queen Suites",
+        "reserveBy": "Reservations need to be made by 8/11/2026"
+      }
+    ]
   },
   "gallery": {
     "uploadInfo": "During the wedding day, this page will be a place for you to upload your own photos from the celebration so the couple can keep and enjoy them. Check back here on the big day for the upload option!"

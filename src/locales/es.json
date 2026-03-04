@@ -167,7 +167,25 @@
   },
   "travel": {
     "title": "Viaje",
-    "intro": "Hoteles, aeropuerto e informacion local."
+    "intro": "Hoteles, aeropuerto e informacion local.",
+    "hotels": [
+      {
+        "details": "Habitaciones disponibles en el bloque: King sencilla o Double Queen",
+        "reserveBy": "Las reservaciones deben hacerse antes del 8/11/2026"
+      },
+      {
+        "details": "Habitaciones disponibles en el bloque: Double Queen",
+        "reserveBy": "Favor de llamar para pedir habitacion bajo el bloque `Hidalgo Wedding` antes del 8/10/2026"
+      },
+      {
+        "details": "Habitaciones disponibles en el bloque: King sencilla o Double Queen",
+        "reserveBy": "Las reservaciones deben hacerse antes del 8/11/2026"
+      },
+      {
+        "details": "Habitaciones disponibles en el bloque: Suites King o Suites Double Queen",
+        "reserveBy": "Las reservaciones deben hacerse antes del 8/11/2026"
+      }
+    ]
   },
   "gallery": {
     "uploadInfo": "Durante el día de la boda, esta página será un lugar para subir tus propias fotos de la celebración para que la pareja pueda conservarlas y disfrutarlas. ¡Vuelve aquí el gran día para la opción de subir!"
