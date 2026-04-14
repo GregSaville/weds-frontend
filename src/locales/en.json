@@ -148,20 +148,20 @@
     "intro": "Answers to common questions about the day.",
     "faqs": [
       {
-        "question": "When do we need to RSVP by?",
-        "answer": "Please RSVP by..."
-      },
-      {
-        "question": "Is there a dress code?",
-        "answer": "We’d love to see our family and friends dressed up for our big day!"
-      },
-      {
-        "question": "Can I bring a guest/date?",
-        "answer": "Due to limited space, we are only able to accommodate those guests formally invited on your wedding invitation. If you received a plus one, they will appear under your name when you RSVP. Thank you for understanding, and please feel free to reach out with any questions."
+        "question": "RSVP Deadline",
+        "answer": "Please RSVP by August 13, 2026, using the RSVP tab on this website and the code on your invitation. If you do not RSVP in time, we will assume that you are unable to attend. We will miss you celebrating with us; however, we need to provide a final guest count to our vendors in a timely manner."
       },
       {
         "question": "What time should I arrive?",
-        "answer": "The ceremony will begin promptly at ..... Please arrive at least 15-30 minutes prior to ensure you have time to park and find a seat."
+        "answer": "The ceremony will begin promptly at 4:00 pm. Please arrive at least 15-30 minutes prior to ensure you have time to park and find a seat."
+      },
+      {
+        "question": "Can I bring a guest/date?",
+        "answer": "Due to limited space, we are only able to accommodate those guests formally invited. The number of guests per RSVP will be listed for you to add under your name when using the RSVP function on the website."
+      },
+      {
+        "question": "Is there a dress code?",
+        "answer": "We would love to see our family and friends dressed up with us. Semi-formal attire is encouraged."
       }
     ]
   },
@@ -191,7 +191,13 @@
     "uploadInfo": "During the wedding day, this page will be a place for you to upload your own photos from the celebration so the couple can keep and enjoy them. Check back here on the big day for the upload option!"
   },
   "schedule": {
-    "message": "Schedule is still being finalized, come back again for more!"
+    "title": "Schedule",
+    "events": [
+      { "time": "4:00pm", "label": "Ceremony" },
+      { "time": "4:30pm", "label": "Social Hour" },
+      { "time": "5:30pm", "label": "Dinner" },
+      { "time": "7:00pm", "label": "Dance" }
+    ]
   },
   "common": {
     "back": "Back"

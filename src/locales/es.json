@@ -148,20 +148,20 @@
     "intro": "Respuestas a dudas comunes sobre el dia.",
     "faqs": [
       {
-        "question": "¿Cuándo debemos confirmar nuestra reservación?",
-        "answer": "Por favor confirmen antes de...."
-      },
-      {
-        "question": "¿Hay un código de vestimenta?",
-        "answer": "Nos gustaría que todos vengan bien vestidos a nuestro día"
-      },
-      {
-        "question": "¿Puedo traer alguien mas?",
-        "answer": "Debido al espacio limitado, solo podemos atender a los que han sido formalmente invitados en su invitación de boda. Si recibió un acompañante, aparecerá bajo su nombre al confirmar su reservación. Gracias por su comprensión y no dude en contactarnos si tiene alguna pregunta."
+        "question": "Fecha límite para confirmar asistencia",
+        "answer": "Por favor, confirmen su asistencia antes del 13 de agosto de 2026, utilizando la pestaña de confirmación de este sitio web y el código que figura en su invitación. Si no confirman su asistencia a tiempo, asumiremos que no podrán asistir. Lamentaremos mucho que no puedan celebrar con nosotros; sin embargo, necesitamos proporcionar el número final de invitados a nuestros proveedores con la debida manera oportuna."
       },
       {
         "question": "¿A qué hora debo llegar?",
-        "answer": "La ceremonia comenzará puntualmente a las __. Por favor, llegue al menos 15-30 minutos antes para asegurarse de tener tiempo de estacionarse y encontrar un asiento."
+        "answer": "La ceremonia comenzará puntualmente a las 4:00 pm. Por favor, llegue al menos entre 15 y 30 minutos antes para asegurarse de tener tiempo para estacionar y encontrar un asiento."
+      },
+      {
+        "question": "¿Puedo traer alguien mas?",
+        "answer": "Debido al espacio limitado, solo podemos recibir a los invitados que han sido formalmente invitados. El número de invitados por confirmación de asistencia aparecerá indicado para que lo añada bajo su nombre al utilizar la función de confirmación en el sitio web."
+      },
+      {
+        "question": "¿Hay un código de vestimenta?",
+        "answer": "Nos encantaría ver a nuestra familia y amigos vestidos de gala junto a nosotros. Se sugiere vestimenta semiformal."
       }
     ]
   },
@@ -191,7 +191,13 @@
     "uploadInfo": "Durante el día de la boda, esta página será un lugar para subir tus propias fotos de la celebración para que la pareja pueda conservarlas y disfrutarlas. ¡Vuelve aquí el gran día para la opción de subir!"
   },
   "schedule": {
-    "message": "El horario aún se está finalizando, ¡vuelve más tarde para más información!"
+    "title": "Agenda",
+    "events": [
+      { "time": "4:00pm", "label": "Ceremonia" },
+      { "time": "4:30pm", "label": "Hora Social" },
+      { "time": "5:30pm", "label": "Cena" },
+      { "time": "7:00pm", "label": "Baile" }
+    ]
   },
   "common": {
     "back": "Atras"

@@ -1,12 +1,14 @@
-import { Box, Flex, Heading, Text, Stack, SimpleGrid, Image } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text, Stack, SimpleGrid, Image, Link } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 import LanguageSlider from "../componets/LanguageSlider";
 import NavBar from "../componets/NavBar";
 import TitleWithBrackets from "../componets/TitleWithBrackets";
-import ringImg from "../img/home/d&r-ring.png";
-import wizardsImg from "../img/home/d&r-wizards.png";
-import atotImg from "../img/home/d&r-atot.png";
-import banffImg from "../img/home/d&r-banff.png";
+import homeImg1 from "../img/home/Hidalgo_BW-800-9.jpg";
+import homeImg2 from "../img/home/Hidalgo_ENG-800-29.jpg";
+import homeImg3 from "../img/home/Hidalgo_ENG-800-32.jpg";
+import homeImg4 from "../img/home/Hidalgo_ENG-800-39.jpg";
+import homeImg5 from "../img/home/Hidalgo_ENG-800-40.jpg";
+import homeImg6 from "../img/home/Hidalgo_P-800-4.jpg";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -64,7 +66,7 @@ export default function Home() {
             {partnerTwo} & {partnerOne}
           </TitleWithBrackets>
 
-          <LanguageSlider/>
+          <LanguageSlider />
 
           {/* Wedding info and countdown */}
           {(formattedWeddingDate || weddingCity || weddingState || daysToGo !== null) && (
@@ -93,15 +95,17 @@ export default function Home() {
       <Box p={8}>
         {/* Placeholders row: Venue | Date, Time */}
         <Flex maxW="800px" mx="auto" justify="space-between" align="center" mb={6} px={1}>
-          <Text fontSize={["md","lg"]} color="black" fontWeight="semibold">
-            Venue Information
+          <Text fontSize={["md", "lg"]} color="black" fontWeight="semibold">
+            <Link href="https://www.sanctuaryevents.com/wedding" target="_blank" rel="noopener noreferrer">
+              Venue: Sanctuary Events Center
+            </Link>
           </Text>
-          <Text fontSize={["md","lg"]} color="black" fontWeight="semibold" textAlign="right">
-            Date, Time
+          <Text fontSize={["md", "lg"]} color="black" fontWeight="semibold" textAlign="right">
+            Date/Time: 9.12.2026 4:00pm
           </Text>
         </Flex>
         <SimpleGrid columns={{ base: 1, sm: 1, lg: 1 }} spacing={8} maxW="800px" mx="auto">
-          {[ringImg, wizardsImg, atotImg, banffImg].map((src, idx) => (
+          {[homeImg1, homeImg2, homeImg3, homeImg4, homeImg5, homeImg6].map((src, idx) => (
             <Box key={idx} overflow="hidden" borderRadius="lg" boxShadow="md" bg="white" p={4}>
               <Image src={src} alt={`Gallery ${idx + 1}`} w="100%" objectFit="cover" />
             </Box>

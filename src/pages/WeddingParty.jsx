@@ -46,6 +46,25 @@ export default function WeddingParty() {
             </VStack>
           ))}
         </SimpleGrid>
+
+        {/* Ring Bearer - centered below the grid */}
+        <Flex justify="center" mt={4}>
+          <VStack
+            align="center"
+            spacing={1}
+            px={[3, 4]}
+            py={[3, 4]}
+            borderBottom="1px dashed"
+            borderColor="gray.300"
+            textAlign="center"
+            fontFamily={weddingFont}
+            minW="200px"
+          >
+            <Text fontSize="xl" fontWeight="bold">Maverick Louwagie</Text>
+            <Text fontWeight="medium" color="gray.700">Ring Bearer</Text>
+            <Text color="gray.600">Nephew of the Bride</Text>
+          </VStack>
+        </Flex>
       </Box>
     </Box>
   );
