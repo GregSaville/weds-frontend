@@ -61,8 +61,8 @@ export default function WeddingParty() {
             minW="200px"
           >
             <Text fontSize="xl" fontWeight="bold">Maverick Louwagie</Text>
-            <Text fontWeight="medium" color="gray.700">Ring Bearer</Text>
-            <Text color="gray.600">Nephew of the Bride</Text>
+            <Text fontWeight="medium" color="gray.700">{t("weddingParty.ringBearer.role")}</Text>
+            <Text color="gray.600">{t("weddingParty.ringBearer.relation")}</Text>
           </VStack>
         </Flex>
       </Box>

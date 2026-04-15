@@ -70,6 +70,10 @@
   "weddingParty": {
     "title": "Corte Nupcial",
     "intro": "Conozca a damas, padrinos y personas especiales.",
+    "ringBearer": {
+      "role": "Portador de los Anillos",
+      "relation": "Sobrino de la Novia"
+    },
     "members": [
       {
         "name": "Mike and Jennifer Thomsen",

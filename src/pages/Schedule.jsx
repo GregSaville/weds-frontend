@@ -22,14 +22,11 @@ function CeremonyIcon() {
 function SocialIcon() {
   return (
     <Box as="svg" viewBox="0 0 24 24" w="22px" h="22px" fill="#b08649">
-      {/* Two clinking glasses */}
-      <path d="M6 2L3 9c0 1.7 1.3 3 3 3s3-1.3 3-3L6 2z" />
-      <path d="M18 2l-3 7c0 1.7 1.3 3 3 3s3-1.3 3-3l-3-7z" />
-      <rect x="5.5" y="12" width="1" height="5" />
-      <rect x="17.5" y="12" width="1" height="5" />
-      <rect x="3" y="17" width="5" height="1" rx="0.5" />
-      <rect x="15" y="17" width="5" height="1" rx="0.5" />
-      <line x1="8" y1="6" x2="16" y2="6" stroke="#b08649" strokeWidth="1.5" />
+      {/* Wine glass — Material Icons "wine_bar" path, fills the full viewBox cleanly */}
+      <path d="M20 3H4v2l8 9v5H8v2h8v-2h-4v-5l8-9V3z" />
+      {/* Bubbles inside the bowl */}
+      <circle cx="10" cy="6" r="0.8" fill="white" opacity="0.7" />
+      <circle cx="13" cy="7.5" r="0.6" fill="white" opacity="0.7" />
     </Box>
   );
 }

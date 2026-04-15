@@ -70,6 +70,10 @@
   "weddingParty": {
     "title": "Wedding Party",
     "intro": "Meet the bridesmaids, groomsmen, and honored friends and family.",
+    "ringBearer": {
+      "role": "Ring Bearer",
+      "relation": "Nephew of the Bride"
+    },
     "members": [
       {
         "name": "Mike and Jennifer Thomsen",
