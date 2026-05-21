@@ -12,7 +12,66 @@ import {
   VStack,
   Image,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import inputIcon from "../../img/icon/input-icon.png";
+
+function PartySizeEditor({ guest, updateInviteePartySize }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(guest.allowedPartySize ?? 1));
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await updateInviteePartySize(guest, draft);
+    setSaving(false);
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setDraft(String(guest.allowedPartySize ?? 1));
+    setEditing(false);
+  };
+
+  if (!editing) {
+    return (
+      <HStack spacing={2}>
+        <Text color="gray.700">Party Size: <b>{guest.allowedPartySize}</b></Text>
+        <Button
+          size="xs"
+          variant="outline"
+          colorScheme="yellow"
+          onClick={() => {
+            setDraft(String(guest.allowedPartySize ?? 1));
+            setEditing(true);
+          }}
+        >
+          Edit
+        </Button>
+      </HStack>
+    );
+  }
+
+  return (
+    <HStack spacing={2} align="center">
+      <Text fontSize="sm" color="gray.600" flexShrink={0}>Party Size:</Text>
+      <Input
+        type="number"
+        min={1}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        w="70px"
+        size="sm"
+        autoFocus
+      />
+      <Button size="xs" colorScheme="green" onClick={handleSave} isLoading={saving}>
+        Save
+      </Button>
+      <Button size="xs" variant="ghost" onClick={handleCancel} isDisabled={saving}>
+        Cancel
+      </Button>
+    </HStack>
+  );
+}
 
 export default function GuestPanel({
   invitees,
@@ -32,6 +91,7 @@ export default function GuestPanel({
   copyInviteCode,
   openRsvpFromGuest,
   deleteInvitee,
+  updateInviteePartySize,
 }) {
   const isMobile = useBreakpointValue({ base: true, md: false });
 
@@ -90,6 +150,7 @@ export default function GuestPanel({
           {invitees.map((g) => {
             const key = g.id || `${g.firstName}-${g.lastName}`;
             const name = `${g.firstName || ""} ${g.lastName || ""}`.trim() || "Guest";
+            const hasResponded = g.rsvpId != null;
             return (
               <Box
                 key={key}
@@ -102,10 +163,15 @@ export default function GuestPanel({
                 <HStack justify="space-between">
                   <VStack align="start" spacing={0}>
                     <Text fontWeight="bold">{name}</Text>
-                    <Text color="gray.600">Party Size: {g.allowedPartySize}</Text>
                   </VStack>
                 </HStack>
                 <Stack mt={3} spacing={2}>
+                  {/* Party size — editable only if guest hasn't responded */}
+                  {hasResponded ? (
+                    <Text color="gray.700">Party Size: <b>{g.allowedPartySize}</b></Text>
+                  ) : (
+                    <PartySizeEditor guest={g} updateInviteePartySize={updateInviteePartySize} />
+                  )}
                   <HStack justify="space-between">
                     <Text fontWeight="semibold">Invite Code</Text>
                     <HStack spacing={2}>
@@ -119,7 +185,7 @@ export default function GuestPanel({
                   </HStack>
                   <HStack justify="space-between">
                     <Text fontWeight="semibold">RSVP</Text>
-                    {g.rsvpId != null ? (
+                    {hasResponded ? (
                       <Badge
                         as="button"
                         colorPalette="blue"
@@ -176,11 +242,19 @@ export default function GuestPanel({
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
         {invitees.map((g) => {
           const name = `${g.firstName || ""} ${g.lastName || ""}`.trim() || "Guest";
+          const hasResponded = g.rsvpId != null;
           return (
             <Box key={g.id} p={4} borderWidth="1px" borderRadius="lg" bg="white" boxShadow="sm">
               <VStack align="start" spacing={2}>
                 <Heading size="sm">{name}</Heading>
-                <Text color="gray.700">Party Size: {g.allowedPartySize}</Text>
+
+                {/* Party size — editable only if guest hasn't responded yet */}
+                {hasResponded ? (
+                  <Text color="gray.700">Party Size: <b>{g.allowedPartySize}</b></Text>
+                ) : (
+                  <PartySizeEditor guest={g} updateInviteePartySize={updateInviteePartySize} />
+                )}
+
                 <HStack spacing={2}>
                   <Text fontWeight="semibold">Invite Code:</Text>
                   <Text fontFamily="mono">{g.guestCode || "-"}</Text>
@@ -192,7 +266,7 @@ export default function GuestPanel({
                 </HStack>
                 <HStack spacing={2}>
                   <Text fontWeight="semibold">RSVP:</Text>
-                  {g.rsvpId != null ? (
+                  {hasResponded ? (
                     <Badge
                       colorPalette="blue"
                       variant="solid"

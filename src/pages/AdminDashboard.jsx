@@ -356,6 +356,21 @@ export default function AdminDashboard() {
     }
   };
 
+  const updateInviteePartySize = async (guest, newSize) => {
+    const size = Math.max(1, parseInt(newSize, 10) || 1);
+    try {
+      await axios.put(`${adminBase}/invitees/${guest.id}`, { allowedPartySize: size }, {
+        headers: { Authorization: getAuthHeader(), "Content-Type": "application/json" },
+      });
+      setInvitees((prev) =>
+        prev.map((g) => g.id === guest.id ? { ...g, allowedPartySize: size } : g)
+      );
+      showToast("Party size updated", "success");
+    } catch (err) {
+      showToast(`Update failed: ${err.response?.data?.message || err.message}`, "error");
+    }
+  };
+
   const deleteRsvp = async (rsvp) => {
     if (!rsvp?.id) return;
     const name = rsvp.name ? `${rsvp.name.firstName || ""} ${rsvp.name.lastName || ""}`.trim() : "this RSVP";
@@ -894,6 +909,7 @@ export default function AdminDashboard() {
             copyInviteCode={copyInviteCode}
             openRsvpFromGuest={openRsvpFromGuest}
             deleteInvitee={deleteInvitee}
+            updateInviteePartySize={updateInviteePartySize}
           />
         )}
 
