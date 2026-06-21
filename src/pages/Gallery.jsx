@@ -63,7 +63,7 @@ export default function Gallery() {
     try {
       setIsLoading(true);
       const res = await axios.get(`${publicBase}/gallery?page=${pageNumber}&size=20`);
-      const newItems = res.data.content;
+      const newItems = res.data?.content || [];
       setMediaItems((prev) => [...prev, ...newItems]);
       setHasMore(!res.data.last);
     } catch (err) {

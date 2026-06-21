@@ -147,7 +147,7 @@ export default function GuestPanel({
         </HStack>
         {renderInviteForm()}
         <Stack spacing={3}>
-          {invitees.map((g) => {
+          {(invitees || []).map((g) => {
             const key = g.id || `${g.firstName}-${g.lastName}`;
             const name = `${g.firstName || ""} ${g.lastName || ""}`.trim() || "Guest";
             const hasResponded = g.rsvpId != null;
@@ -240,7 +240,7 @@ export default function GuestPanel({
       </HStack>
       {renderInviteForm()}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-        {invitees.map((g) => {
+        {(invitees || []).map((g) => {
           const name = `${g.firstName || ""} ${g.lastName || ""}`.trim() || "Guest";
           const hasResponded = g.rsvpId != null;
           return (
