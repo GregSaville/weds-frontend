@@ -135,7 +135,7 @@ export default function AdminDashboard() {
       const res = await axios.get(`${adminBase}/invitees`, {
         headers: { Authorization: getAuthHeader() },
       });
-      setInvitees(res.data || []);
+      setInvitees(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       showToast(`Error fetching invitees: ${err.response?.data?.message || err.message}`, "error");
     }
