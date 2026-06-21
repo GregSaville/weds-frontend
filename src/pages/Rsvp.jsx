@@ -46,7 +46,7 @@ export default function Rsvp() {
   const [justSubmitted, setJustSubmitted] = useState(false);
   const [hasResponded, setHasResponded] = useState(false);
 
-  const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/api/public";
+  const publicBase = process.env.REACT_APP_PUBLIC_BASE || "/public";
   const endpoint = process.env.REACT_APP_RSVP_ENDPOINT || `${publicBase}/rsvp`;
   const metaBase = process.env.REACT_APP_RSVP_META_ENDPOINT || `${publicBase}/rsvp-meta`;
   const publicSettingsEndpoint = process.env.REACT_APP_PUBLIC_SETTINGS_ENDPOINT || `${publicBase}/settings`;
@@ -184,7 +184,7 @@ export default function Rsvp() {
     }
   }, []);
 
-  const inviteOnly = !settings.rsvpOpenToStrangers;
+
   const inviteRequiredAndMissing = !inviteReady;
   const isSessionLocked = typeof sessionLockedId === "string" && sessionLockedId.trim().length > 0;
   const showLockedNotice = isSessionLocked || hasResponded || justSubmitted;

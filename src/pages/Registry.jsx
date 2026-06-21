@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Text, Stack, Button, Image } from "@chakra-ui/react";
+import { Box, Flex, Text, Stack, Button, Image } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 import LanguageSlider from "../componets/LanguageSlider";
 import NavBar from "../componets/NavBar";
@@ -7,9 +7,7 @@ import amazonLogo from "../img/registry/amazon-logo.png";
 import targetLogo from "../img/registry/target-logo.png";
 
 export default function Registry() {
-  const { t, i18n } = useTranslation();
-
-  const changeLanguage = (lng) => i18n.changeLanguage(lng);
+  const { t } = useTranslation();
 
   let registries = [];
   try {

@@ -40,7 +40,6 @@ export default function Home() {
     }
   }
 
-  const changeLanguage = (lng) => i18n.changeLanguage(lng);
 
   return (
     <Box minH="100vh" bg="transparent">

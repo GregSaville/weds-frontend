@@ -1,6 +1,6 @@
 // src/utils/auth.js
 const AUTH_KEY = "weds_auth";
-const adminBase = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
+const adminBase = process.env.REACT_APP_ADMIN_BASE || "/admin";
 const adminHealthEndpoint = `${adminBase.replace(/\/$/, "")}/health`;
 
 export function setAuth(username, password) {

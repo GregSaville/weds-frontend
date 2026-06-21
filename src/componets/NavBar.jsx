@@ -1,4 +1,4 @@
-import { Box, Flex, Button } from "@chakra-ui/react";
+import { Flex, Button } from "@chakra-ui/react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 

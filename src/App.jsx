@@ -4,6 +4,7 @@ import Registry from './pages/Registry';
 import Schedule from './pages/Schedule';
 import Rsvp from './pages/Rsvp';
 import Gallery from './pages/Gallery';
+import GalleryView from './pages/GalleryView';
 import WeddingParty from './pages/WeddingParty';
 import Qa from './pages/Qa';
 import Travel from './pages/Travel';
@@ -36,6 +37,7 @@ function App() {
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/rsvp" element={<Rsvp />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/gallery/view" element={<GalleryView />} />
         <Route path="/wedding-party" element={<WeddingParty />} />
         <Route path="/qa" element={<Qa />} />
         <Route path="/travel" element={<Travel />} />

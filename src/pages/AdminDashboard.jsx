@@ -20,13 +20,21 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { checkAuth, clearAuth, getAuthHeader } from "../utils/auth";
+import GalleryAdjudicationPanel from "../componets/admin/GalleryAdjudicationPanel";
 import axios from "axios";
 import { useToast } from "../componets/ToastProvider";
 import GuestPanel from "../componets/admin/GuestPanel";
 import RsvpPanel from "../componets/admin/RsvpPanel";
 import ExpectedPanel from "../componets/admin/ExpectedPanel";
 import StatusTag from "../componets/admin/StatusTag";
-import settingsIcon from "../img/icon/settings-icon.png";
+import { Icon } from "@chakra-ui/react";
+
+const SettingsGearIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: props.boxSize || "24px", height: props.boxSize || "24px" }} {...props}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
 
 const getStatusMeta = (status) => {
   if (!status) return { label: "Pending", scheme: "gray" };
@@ -47,7 +55,6 @@ const getStatusMeta = (status) => {
 };
 
 const RSVP_STATUS_ORDER = ["ACCEPTED", "DECLINED"];
-const APPROVAL_STATUS_ORDER = ["PENDING_REVIEW", "APPROVED"];
 
 const InfoStat = ({ label, value }) => {
   const displayValue = value === undefined || value === null || value === "" ? "-" : value;
@@ -77,13 +84,14 @@ export default function AdminDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialView = (() => {
     const tab = (searchParams.get("tab") || "").toLowerCase();
-    if (tab === "rsvps" || tab === "expected" || tab === "guests") return tab;
+    if (tab === "rsvps" || tab === "expected" || tab === "guests" || tab === "gallery") return tab;
     return "guests";
   })();
   const initialRsvpId = searchParams.get("rsvp") || null;
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const adminBase = process.env.REACT_APP_ADMIN_BASE || "/admin";
   const [showSettings, setShowSettings] = useState(false);
   const [isEditingRsvp, setIsEditingRsvp] = useState(false);
   const [activeRsvpId, setActiveRsvpId] = useState(initialRsvpId);
@@ -92,20 +100,35 @@ export default function AdminDashboard() {
   const [expected, setExpected] = useState([]);
   const [expectedLoading, setExpectedLoading] = useState(false);
   const [turnoutCount, setTurnoutCount] = useState(0);
-  const [settings, setSettings] = useState({ rsvpOpenToStrangers: false, rsvpClosed: false });
+  const [settings, setSettings] = useState({ rsvpOpenToStrangers: false, rsvpClosed: false, galleryUploadsOpen: false });
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [isEditingSettings, setIsEditingSettings] = useState(false);
+  const [galleryUploads, setGalleryUploads] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+
+  const loadGalleryPending = useCallback(async () => {
+    setGalleryLoading(true);
+    try {
+      const res = await axios.get(`${adminBase}/gallery/pending`, {
+        headers: { Authorization: getAuthHeader() },
+      });
+      setGalleryUploads(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      showToast(`Error fetching gallery uploads: ${err.response?.data?.message || err.message}`, "error");
+    } finally {
+      setGalleryLoading(false);
+    }
+  }, [adminBase, showToast]);
 
   const totals = useMemo(() => {
     const total = invitees.length;
     const rsvpsCount = rsvps.length;
     const computed = expected.reduce((acc, a) => acc + 1 + (Array.isArray(a.additionalGuests) ? a.additionalGuests.length : 0), 0);
     const expectedCount = turnoutCount || computed;
-    return { total, rsvpsCount, expectedCount };
-  }, [invitees, rsvps, expected, turnoutCount]);
-
-  const adminBase = process.env.REACT_APP_ADMIN_BASE || "/api/admin";
+    const galleryCount = galleryUploads.length;
+    return { total, rsvpsCount, expectedCount, galleryCount };
+  }, [invitees, rsvps, expected, turnoutCount, galleryUploads]);
 
   const reloadInvitees = useCallback(async () => {
     try {
@@ -166,6 +189,7 @@ export default function AdminDashboard() {
         setSettings({
           rsvpOpenToStrangers: !!res.data.rsvpOpenToStrangers,
           rsvpClosed: !!res.data.rsvpClosed,
+          galleryUploadsOpen: !!res.data.galleryUploadsOpen,
         });
       }
     } catch (err) {
@@ -189,11 +213,12 @@ export default function AdminDashboard() {
       await reloadRsvps();
       await loadExpected();
       await loadSettings();
+      await loadGalleryPending();
       setLoading(false);
     };
 
     bootstrap();
-  }, [navigate, showToast, reloadInvitees, loadSettings, reloadRsvps, loadExpected]);
+  }, [navigate, showToast, reloadInvitees, loadSettings, reloadRsvps, loadExpected, loadGalleryPending]);
 
   // Refresh list data when switching tabs to keep counts fresh
   useEffect(() => {
@@ -201,8 +226,10 @@ export default function AdminDashboard() {
       reloadRsvps();
     } else if (view === "expected") {
       loadExpected();
+    } else if (view === "gallery") {
+      loadGalleryPending();
     }
-  }, [view, reloadRsvps, loadExpected]);
+  }, [view, reloadRsvps, loadExpected, loadGalleryPending]);
 
   const saveSettings = async (nextSettings, fallbackSettings) => {
     setSettingsSaving(true);
@@ -407,7 +434,7 @@ export default function AdminDashboard() {
     viewRsvpDetail(rsvpId);
   };
 
-  const loadRsvpDetail = async (id) => {
+  const loadRsvpDetail = useCallback(async (id) => {
     setRsvpDetailLoading(true);
     try {
       const res = await axios.get(`${adminBase}/rsvps/${id}`, {
@@ -420,7 +447,7 @@ export default function AdminDashboard() {
     } finally {
       setRsvpDetailLoading(false);
     }
-  };
+  }, [adminBase, showToast]);
 
   const updateRsvpField = (field, value) => {
     setSelectedRsvp((prev) => (prev ? { ...prev, [field]: value } : prev));
@@ -444,11 +471,7 @@ export default function AdminDashboard() {
     setSelectedRsvp((prev) => (prev ? { ...prev, approvalStatus } : prev));
   };
 
-  const updateStatusAndSave = async (status) => {
-    if (!status || !selectedRsvp?.id) return;
-    handleStatusChange(status);
-    await saveRsvpDetail({ status });
-  };
+
 
   const updateApprovalAndSave = async (approvalStatus) => {
     if (!approvalStatus || !selectedRsvp?.id) return;
@@ -754,7 +777,7 @@ export default function AdminDashboard() {
         loadRsvpDetail(activeRsvpId);
       }
     }
-  }, [view, activeRsvpId, selectedRsvp]);
+  }, [view, activeRsvpId, selectedRsvp, loadRsvpDetail]);
 
   const saveRsvpDetail = async (overrides = {}) => {
     if (!selectedRsvp?.id) return;
@@ -811,7 +834,6 @@ export default function AdminDashboard() {
         <Spacer />
         <IconButton
           aria-label="Open settings"
-          icon={<Image src={settingsIcon} alt="Settings" boxSize="22px" />}
           variant="outline"
           colorScheme="yellow"
           onClick={() => {
@@ -820,13 +842,15 @@ export default function AdminDashboard() {
             if (next) loadSettings();
           }}
           isDisabled={settingsLoading}
-        />
+        >
+          <SettingsGearIcon boxSize="22px" />
+        </IconButton>
         <Button colorScheme="red" variant="outline" onClick={handleLogout}>
           Logout
         </Button>
       </HStack>
 
-      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
         <Box
           onClick={() => setView("guests")}
           cursor="pointer"
@@ -880,6 +904,24 @@ export default function AdminDashboard() {
             Count: <b>{totals.expectedCount}</b>
           </Text>
         </Box>
+
+        <Box
+          onClick={() => setView("gallery")}
+          cursor="pointer"
+          bg={view === "gallery" ? "yellow.100" : "whiteAlpha.700"}
+          backdropFilter="blur(10px)"
+          border="1px solid rgba(255,255,255,0.4)"
+          boxShadow="0 4px 10px rgba(0,0,0,0.08)"
+          borderRadius="xl"
+          p={6}
+        >
+          <Heading size="md" color="#b08649">
+            Gallery
+          </Heading>
+          <Text mt={2} color="gray.600">
+            Pending: <b>{totals.galleryCount}</b>
+          </Text>
+        </Box>
       </SimpleGrid>
 
       <Box
@@ -929,6 +971,14 @@ export default function AdminDashboard() {
 
         {view === "expected" && (
           <ExpectedPanel expected={expected} expectedLoading={expectedLoading} totals={totals} />
+        )}
+
+        {view === "gallery" && (
+          <GalleryAdjudicationPanel
+            uploads={galleryUploads}
+            loading={galleryLoading}
+            reload={loadGalleryPending}
+          />
         )}
       </Box>
 
@@ -1044,6 +1094,44 @@ export default function AdminDashboard() {
                 )}
                 <Text mt={1} fontSize="sm" color="gray.600">
                   Currently: <b>{settings.rsvpOpenToStrangers ? "Anyone can RSVP" : "Invite required"}</b>
+                </Text>
+              </VStack>
+            </Box>
+
+            <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+              <VStack align="stretch" spacing={3}>
+                <Heading size="sm" color="teal.700">
+                  Gallery Uploads
+                </Heading>
+                <Text fontSize="sm" color="gray.600">
+                  Enable or disable public guest uploads to the gallery.
+                </Text>
+                {isEditingSettings ? (
+                  <HStack spacing={4}>
+                    <Button
+                      size="sm"
+                      variant={settings.galleryUploadsOpen ? "outline" : "solid"}
+                      colorScheme="red"
+                      onClick={() => setSettingValue("galleryUploadsOpen", false)}
+                      isDisabled={settingsSaving}
+                    >
+                      Disabled
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={settings.galleryUploadsOpen ? "solid" : "outline"}
+                      colorScheme="green"
+                      onClick={() => setSettingValue("galleryUploadsOpen", true)}
+                      isDisabled={settingsSaving}
+                    >
+                      Enabled
+                    </Button>
+                  </HStack>
+                ) : (
+                  <StatusTag status={settings.galleryUploadsOpen ? "OPEN" : "CLOSED"} />
+                )}
+                <Text mt={1} fontSize="sm" color="gray.600">
+                  Currently: <b>{settings.galleryUploadsOpen ? "Open for uploads" : "Uploads disabled"}</b>
                 </Text>
               </VStack>
             </Box>
