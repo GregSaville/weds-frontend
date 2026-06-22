@@ -21,8 +21,9 @@ export async function checkAuth() {
     const response = await fetch(adminHealthEndpoint, {
       headers: { Authorization: header },
     });
-    const isJson = response.headers.get("content-type")?.includes("application/json");
-    return response.ok && isJson;
+    if (!response.ok) return false;
+    const data = await response.json();
+    return data && data.status === "ok";
   } catch {
     return false;
   }
