@@ -32,13 +32,13 @@ export default function AdminLogin() {
         headers: { Authorization: authHeader },
       });
 
-      if (res.status === 200) {
+      if (res.status === 200 && res.data && res.data.status === "ok") {
         // Persist credentials for subsequent requests
         setAuth(username, password);
         showToast("Login successful - welcome!", "success");
         navigate("/admin/dashboard");
       } else {
-        showToast("Unexpected response during login.", "error");
+        showToast("Backend is offline or returned an unexpected response.", "error");
       }
     } catch (err) {
       showToast(
