@@ -1,8 +1,39 @@
-import { Box, Button, Heading, Stack, Table, Text, useBreakpointValue } from "@chakra-ui/react";
+import { Box, Button, Heading, Stack, Table, Text, useBreakpointValue, HStack, Input } from "@chakra-ui/react";
+import { useState, useMemo } from "react";
 import StatusTag from "./StatusTag";
 
 export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, deleteRsvp, selectedRsvpId, detailContent }) {
   const isMobile = useBreakpointValue({ base: true, md: false });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("ALL"); // ALL, ACCEPTED, DECLINED
+  const [filterApproval, setFilterApproval] = useState("ALL"); // ALL, PENDING_REVIEW, APPROVED, REJECTED
+
+  const filteredRsvps = useMemo(() => {
+    return (rsvps || []).filter((r) => {
+      // Status Filter
+      if (filterStatus !== "ALL" && (r.status || "").toUpperCase() !== filterStatus) return false;
+      
+      // Approval Filter
+      const approval = (r.approvalStatus || "PENDING_REVIEW").toUpperCase();
+      if (filterApproval !== "ALL" && approval !== filterApproval) return false;
+
+      // Search Filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const first = r.name?.firstName?.toLowerCase() || "";
+        const last = r.name?.lastName?.toLowerCase() || "";
+        const name = `${first} ${last}`;
+        const email = (r.email || "").toLowerCase();
+        const message = (r.message || "").toLowerCase();
+
+        if (!name.includes(q) && !email.includes(q) && !message.includes(q)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [rsvps, filterStatus, filterApproval, searchQuery]);
 
   const renderMobile = () => {
     if (rsvpsLoading) {
@@ -11,9 +42,12 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
     if (!rsvps.length) {
       return <Text color="gray.600">No RSVPs have been submitted yet.</Text>;
     }
+    if (!filteredRsvps.length && rsvps.length > 0) {
+      return <Text color="gray.600">No RSVPs match your filters.</Text>;
+    }
     return (
       <Stack spacing={3}>
-        {rsvps.map((r) => {
+        {filteredRsvps.map((r) => {
           const approval = r.approvalStatus || "PENDING_REVIEW";
           return (
             <Box
@@ -79,7 +113,17 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
       );
     }
 
-    return rsvps.flatMap((r) => {
+    if (!filteredRsvps.length && rsvps.length > 0) {
+      return (
+        <Table.Row>
+          <Table.Cell colSpan={5}>
+            <Text color="gray.600">No RSVPs match your filters.</Text>
+          </Table.Cell>
+        </Table.Row>
+      );
+    }
+
+    return filteredRsvps.flatMap((r) => {
       const approval = (r.approvalStatus || "PENDING_REVIEW").toUpperCase();
       const isPendingReview = approval === "PENDING_REVIEW";
       const rowBg = selectedRsvpId === r.id ? "yellow.50" : isPendingReview ? "orange.50" : undefined;
@@ -125,9 +169,73 @@ export default function RsvpPanel({ rsvps, rsvpsLoading, viewRsvpDetail, fmt, de
 
   return (
     <Stack spacing={3}>
-      <Heading size="md" color="teal.700">
-        RSVPs
-      </Heading>
+      <HStack mb={4} wrap="wrap" justify="space-between" spacing={4}>
+        <Heading size="md" color="teal.700">
+          RSVPs
+        </Heading>
+        {!isMobile && (
+          <HStack spacing={3}>
+            <Input 
+              placeholder="Search by name, email, or message..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              bg="white"
+              w="250px"
+              size="sm"
+            />
+            <select 
+              value={filterStatus} 
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #CBD5E0", fontSize: "14px", height: "32px", backgroundColor: "white" }}
+            >
+              <option value="ALL">All Responses</option>
+              <option value="ACCEPTED">Accepted</option>
+              <option value="DECLINED">Declined</option>
+            </select>
+            <select 
+              value={filterApproval} 
+              onChange={(e) => setFilterApproval(e.target.value)}
+              style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #CBD5E0", fontSize: "14px", height: "32px", backgroundColor: "white" }}
+            >
+              <option value="ALL">All Reviews</option>
+              <option value="PENDING_REVIEW">Pending Review</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </HStack>
+        )}
+      </HStack>
+      {isMobile && (
+        <Stack spacing={3} mb={4}>
+          <Input 
+            placeholder="Search RSVPs..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            bg="white"
+          />
+          <HStack>
+            <select 
+              value={filterStatus} 
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #CBD5E0", fontSize: "14px", height: "32px", backgroundColor: "white", flex: 1 }}
+            >
+              <option value="ALL">All Responses</option>
+              <option value="ACCEPTED">Accepted</option>
+              <option value="DECLINED">Declined</option>
+            </select>
+            <select 
+              value={filterApproval} 
+              onChange={(e) => setFilterApproval(e.target.value)}
+              style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #CBD5E0", fontSize: "14px", height: "32px", backgroundColor: "white", flex: 1 }}
+            >
+              <option value="ALL">All Reviews</option>
+              <option value="PENDING_REVIEW">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </HStack>
+        </Stack>
+      )}
       {isMobile ? (
         renderMobile()
       ) : (

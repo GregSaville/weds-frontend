@@ -12,7 +12,7 @@ import {
   VStack,
   Image,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import inputIcon from "../../img/icon/input-icon.png";
 
 function PartySizeEditor({ guest, updateInviteePartySize }) {
@@ -94,6 +94,32 @@ export default function GuestPanel({
   updateInviteePartySize,
 }) {
   const isMobile = useBreakpointValue({ base: true, md: false });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("ALL"); // ALL, PENDING, RESPONDED
+
+  const filteredInvitees = useMemo(() => {
+    return (invitees || []).filter((g) => {
+      // Status Filter
+      const hasResponded = g.rsvpId != null;
+      if (filterStatus === "PENDING" && hasResponded) return false;
+      if (filterStatus === "RESPONDED" && !hasResponded) return false;
+
+      // Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const first = (g.firstName || "").toLowerCase();
+        const last = (g.lastName || "").toLowerCase();
+        const name = `${first} ${last}`;
+        const code = String(g.guestCode || "").toLowerCase();
+        
+        if (!name.includes(q) && !code.includes(q)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [invitees, filterStatus, searchQuery]);
 
   const renderInviteForm = () => (
     inviteFormOpen && (
@@ -145,9 +171,22 @@ export default function GuestPanel({
             {inviteFormOpen ? "Close" : "Invite New Guest"}
           </Button>
         </HStack>
+        <Stack spacing={3} mb={4}>
+          <Input 
+            placeholder="Search by name or invite code..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            bg="white"
+          />
+          <HStack>
+            <Button size="sm" variant={filterStatus === "ALL" ? "solid" : "outline"} colorScheme="yellow" onClick={() => setFilterStatus("ALL")}>All</Button>
+            <Button size="sm" variant={filterStatus === "PENDING" ? "solid" : "outline"} colorScheme="yellow" onClick={() => setFilterStatus("PENDING")}>Pending</Button>
+            <Button size="sm" variant={filterStatus === "RESPONDED" ? "solid" : "outline"} colorScheme="yellow" onClick={() => setFilterStatus("RESPONDED")}>Responded</Button>
+          </HStack>
+        </Stack>
         {renderInviteForm()}
         <Stack spacing={3}>
-          {(invitees || []).map((g) => {
+          {filteredInvitees.map((g) => {
             const key = g.id || `${g.firstName}-${g.lastName}`;
             const name = `${g.firstName || ""} ${g.lastName || ""}`.trim() || "Guest";
             const hasResponded = g.rsvpId != null;
@@ -229,6 +268,23 @@ export default function GuestPanel({
           Guest List
         </Heading>
         <HStack ml="auto" spacing={3}>
+          <Input 
+            placeholder="Search by name or invite code..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            bg="white"
+            w="250px"
+            size="sm"
+          />
+          <select 
+            value={filterStatus} 
+            onChange={(e) => setFilterStatus(e.target.value)}
+            style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #CBD5E0", fontSize: "14px", height: "32px", backgroundColor: "white" }}
+          >
+            <option value="ALL">All Guests</option>
+            <option value="PENDING">Pending</option>
+            <option value="RESPONDED">Responded</option>
+          </select>
           <Button size="sm" colorScheme="yellow" onClick={() => setInviteFormOpen((v) => !v)}>
             {inviteFormOpen ? "Close" : "Invite New Guest"}
           </Button>
@@ -236,7 +292,7 @@ export default function GuestPanel({
       </HStack>
       {renderInviteForm()}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-        {(invitees || []).map((g) => {
+        {filteredInvitees.map((g) => {
           const name = `${g.firstName || ""} ${g.lastName || ""}`.trim() || "Guest";
           const hasResponded = g.rsvpId != null;
           return (
