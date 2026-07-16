@@ -166,12 +166,8 @@ export default function GuestPanel({
                   </VStack>
                 </HStack>
                 <Stack mt={3} spacing={2}>
-                  {/* Party size — editable only if guest hasn't responded */}
-                  {hasResponded ? (
-                    <Text color="gray.700">Party Size: <b>{g.allowedPartySize}</b></Text>
-                  ) : (
-                    <PartySizeEditor guest={g} updateInviteePartySize={updateInviteePartySize} />
-                  )}
+                  {/* Party size — editable always */}
+                  <PartySizeEditor guest={g} updateInviteePartySize={updateInviteePartySize} />
                   <HStack justify="space-between">
                     <Text fontWeight="semibold">Invite Code</Text>
                     <HStack spacing={2}>
@@ -248,12 +244,8 @@ export default function GuestPanel({
               <VStack align="start" spacing={2}>
                 <Heading size="sm">{name}</Heading>
 
-                {/* Party size — editable only if guest hasn't responded yet */}
-                {hasResponded ? (
-                  <Text color="gray.700">Party Size: <b>{g.allowedPartySize}</b></Text>
-                ) : (
-                  <PartySizeEditor guest={g} updateInviteePartySize={updateInviteePartySize} />
-                )}
+                {/* Party size — editable always */}
+                <PartySizeEditor guest={g} updateInviteePartySize={updateInviteePartySize} />
 
                 <HStack spacing={2}>
                   <Text fontWeight="semibold">Invite Code:</Text>

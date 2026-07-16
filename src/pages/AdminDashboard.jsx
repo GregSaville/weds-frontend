@@ -461,6 +461,14 @@ export default function AdminDashboard() {
     });
   };
 
+  const updateNameField = (field, value) => {
+    setSelectedRsvp((prev) => {
+      if (!prev) return prev;
+      const nextName = { ...(prev.name || {}), [field]: value };
+      return { ...prev, name: nextName };
+    });
+  };
+
   const handleStatusChange = (status) => {
     if (!status) return;
     setSelectedRsvp((prev) => (prev ? { ...prev, status } : prev));
@@ -469,6 +477,31 @@ export default function AdminDashboard() {
   const handleApprovalChange = (approvalStatus) => {
     if (!approvalStatus) return;
     setSelectedRsvp((prev) => (prev ? { ...prev, approvalStatus } : prev));
+  };
+
+  const updateAdditionalGuest = (idx, field, value) => {
+    setSelectedRsvp((prev) => {
+      if (!prev) return prev;
+      const arr = [...(prev.additionalGuests || [])];
+      arr[idx] = { ...arr[idx], [field]: value };
+      return { ...prev, additionalGuests: arr };
+    });
+  };
+
+  const addAdditionalGuest = () => {
+    setSelectedRsvp((prev) => {
+      if (!prev) return prev;
+      const arr = [...(prev.additionalGuests || []), { firstName: "", lastName: "", specialAccommodations: "" }];
+      return { ...prev, additionalGuests: arr };
+    });
+  };
+
+  const removeAdditionalGuest = (idx) => {
+    setSelectedRsvp((prev) => {
+      if (!prev) return prev;
+      const arr = (prev.additionalGuests || []).filter((_, i) => i !== idx);
+      return { ...prev, additionalGuests: arr };
+    });
   };
 
 
@@ -681,6 +714,16 @@ export default function AdminDashboard() {
                       </FormControl>
                       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                         <FormControl>
+                          <FormLabel fontSize="sm">First Name</FormLabel>
+                          <Input value={selectedRsvp.name?.firstName || ""} onChange={(e) => updateNameField("firstName", e.target.value)} placeholder="First Name" />
+                        </FormControl>
+                        <FormControl>
+                          <FormLabel fontSize="sm">Last Name</FormLabel>
+                          <Input value={selectedRsvp.name?.lastName || ""} onChange={(e) => updateNameField("lastName", e.target.value)} placeholder="Last Name" />
+                        </FormControl>
+                      </SimpleGrid>
+                      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                        <FormControl>
                           <FormLabel fontSize="sm">Email</FormLabel>
                           <Input value={selectedRsvp.email || ""} onChange={(e) => updateRsvpField("email", e.target.value)} placeholder="Email address" />
                         </FormControl>
@@ -717,6 +760,40 @@ export default function AdminDashboard() {
                         <FormLabel fontSize="sm">Message</FormLabel>
                         <Textarea value={selectedRsvp.message || ""} onChange={(e) => updateRsvpField("message", e.target.value)} placeholder="Add an internal note" rows={4} />
                       </FormControl>
+                      
+                      <Box mt={4}>
+                        <HStack justify="space-between" mb={2}>
+                          <Heading size="xs" color="teal.700">Additional Guests</Heading>
+                          <Button size="xs" onClick={addAdditionalGuest} colorScheme="yellow" variant="outline">
+                            Add Guest
+                          </Button>
+                        </HStack>
+                        <Stack spacing={3}>
+                          {(selectedRsvp.additionalGuests || []).map((guest, idx) => (
+                            <Box key={idx} p={3} borderWidth="1px" borderRadius="md" bg="white">
+                              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3} mb={3}>
+                                <FormControl>
+                                  <FormLabel fontSize="xs">First Name</FormLabel>
+                                  <Input size="sm" value={guest.firstName || ""} onChange={(e) => updateAdditionalGuest(idx, "firstName", e.target.value)} />
+                                </FormControl>
+                                <FormControl>
+                                  <FormLabel fontSize="xs">Last Name</FormLabel>
+                                  <Input size="sm" value={guest.lastName || ""} onChange={(e) => updateAdditionalGuest(idx, "lastName", e.target.value)} />
+                                </FormControl>
+                              </SimpleGrid>
+                              <FormControl mb={3}>
+                                <FormLabel fontSize="xs">Special Accommodations</FormLabel>
+                                <Input size="sm" value={guest.specialAccommodations || ""} onChange={(e) => updateAdditionalGuest(idx, "specialAccommodations", e.target.value)} />
+                              </FormControl>
+                              <Flex justify="flex-end">
+                                <Button size="xs" colorScheme="red" variant="ghost" onClick={() => removeAdditionalGuest(idx)}>
+                                  Remove
+                                </Button>
+                              </Flex>
+                            </Box>
+                          ))}
+                        </Stack>
+                      </Box>
                     </VStack>
                   </Box>
                 )}
@@ -784,6 +861,7 @@ export default function AdminDashboard() {
     setRsvpSaving(true);
     try {
       const body = {
+        name: overrides.name ?? selectedRsvp.name ?? null,
         status: overrides.status ?? selectedRsvp.status,
         approvalStatus: overrides.approvalStatus ?? selectedRsvp.approvalStatus ?? null,
         email: overrides.email ?? selectedRsvp.email ?? null,

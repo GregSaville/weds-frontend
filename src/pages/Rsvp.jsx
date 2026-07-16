@@ -70,8 +70,8 @@ export default function Rsvp() {
     const any = address1 || address2 || city || state || postalCode;
     if (!any) return null;
     return {
-      line1: address1 || undefined,
-      line2: address2 || undefined,
+      streetLine1: address1 || undefined,
+      streetLine2: address2 || undefined,
       city: city || undefined,
       state: state || undefined,
       postalCode: postalCode || undefined,
