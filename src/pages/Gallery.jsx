@@ -111,7 +111,7 @@ export default function Gallery() {
       setUploadedBy("");
     } catch (err) {
       console.error(err);
-      showToast(err.response?.data?.message || "There was an error uploading your file.", "error", 5000);
+      showToast(err.response?.data?.message || "There was an error uploading your file. Try making the file smaller and reuploading!", "error", 5000);
     } finally {
       setIsUploading(false);
     }
